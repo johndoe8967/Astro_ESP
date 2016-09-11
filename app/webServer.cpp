@@ -6,7 +6,7 @@
  */
 #include <SmingCore/SmingCore.h>
 #include "webServer.h"
-
+#include <Debug.h>
 HttpServer server;
 int totalActiveSockets = 0;
 
@@ -55,15 +55,21 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 	if (value==String("JSON")) {
 		value = root["msg"].asString();
 		if (value==String("bytes")) {
-			String temp;
 			const char* buffer;
 			char* end;
-			temp = root["value"].asString();
-			buffer = temp.c_str();
+			value = root["value"].asString();
+			Debug.print("InMessage:");
+			Debug.println(value);
 
+			buffer = value.c_str();
+
+			char temp[10];
 			for (char i=0; i<sizeof(bytes); i++) {
 				bytes[i] = (unsigned char)strtol (buffer,&end,16);
 				buffer = end + 1;
+				Debug.print("Byte ");
+				itoa(bytes[i],temp,10);
+				Debug.println(temp);
 			}
 		}
 		if (value==String("WIFI")) {
@@ -102,9 +108,7 @@ void startWebServer()
 	server.setWebSocketBinaryHandler(wsBinaryReceived);
 	server.setWebSocketDisconnectionHandler(wsDisconnected);
 
-	Serial.println("\r\n=== WEB SERVER STARTED ===");
-	Serial.println(WifiStation.getIP());
-	Serial.println("==============================\r\n");
+	Debug.printf("\r\n=== WEB SERVER STARTED ===");
 }
 
 
