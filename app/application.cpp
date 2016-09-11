@@ -54,11 +54,13 @@ unsigned char *pBuffer, *pSource;
 
 // cyclic loop
 void loop() {
-	pBuffer = SPI_Buffer;
 
 	// copy out data from devices to SPI buffer
 	// inverse order of chain
-	pSource = myDDS.getSPIOutBuffer();
+/*
+	pBuffer = SPI_Buffer;
+
+ 	pSource = myDDS.getSPIOutBuffer();
 	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
 	pBuffer += myMove.getSPIBufferLen();
 
@@ -69,7 +71,7 @@ void loop() {
 	pSource = myMove.getSPIOutBuffer();
 	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
 	pBuffer += myMove.getSPIBufferLen();
-
+*/
 #ifdef debug	// use bytes from websocked instead of SPI devices
 	memcpy(SPI_Buffer, bytes, sizeof(SPI_Buffer));
 #endif
@@ -77,9 +79,9 @@ void loop() {
 	// show SPI Output before sending
 	Debug.printf("SPI OUT:");
 	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("%x ",SPI_Buffer[i]);
+		Debug.printf("0x%02x ",SPI_Buffer[i]);
 	}
-	Debug.printf("\n\r");
+	Debug.printf("\r\n");
 
 	// transmit SPI_Buffer
 	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
@@ -87,13 +89,14 @@ void loop() {
 	pSoftSPI->endTransaction();
 
 	// show SPI Input after receiving
-	Debug.printf("SPI IN:");
+	Debug.printf("SPI IN :");
 	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("%x ",SPI_Buffer[i]);
+		Debug.printf("0x%02x ",SPI_Buffer[i]);
 	}
-	Debug.printf("\n\r");
+	Debug.printf("\r\n");
 
 	sendSPIData(SPI_Buffer);
+/*
 	pBuffer = SPI_Buffer;
 
 	// copy received data from SPI_Buffer to devices
@@ -104,7 +107,34 @@ void loop() {
 	pBuffer += myAI.getSPIBufferLen();
 
 	myDDS.setSPIInBuffer(pBuffer);
-	pBuffer += myDDS.getSPIBufferLen();
+	pBuffer += myDDS.getSPIBufferLen();*/
+}
+
+void initSPI(unsigned int time) {
+	// initialize Soft SPI
+#ifdef SerialDebug
+	pSoftSPI = null;
+#else
+	Debug.println("preSPI");
+	pSoftSPI = new SPISoft(SPI_MISO, SPI_MOSI, SPI_CLK, SPI_CS, SPI_DELAY, SPI_BYTE_DELAY);
+	Debug.println("postSPI");
+#endif
+	if(pSoftSPI)
+	{
+		Debug.println("pre beginSPI");
+		pSoftSPI->begin();
+		Debug.println("SPI is initialized now.");
+
+		SPIChainLen = myMove.getSPIBufferLen() + myAI.getSPIBufferLen() + myDDS.getSPIBufferLen();
+		Debug.printf("SPI Chainlen %d \r\n", SPIChainLen);
+
+		if (SPIChainLen > sizeof(SPI_Buffer)) return;
+
+		//start listen loop
+		Debug.println("Start SPI Loop");
+		procTimer.initializeMs(time, loop).start();
+		Debug.println("Started SPI Loop");
+	}
 }
 
 // Will be called when WiFi station was connected to AP
@@ -114,14 +144,20 @@ void connectOk()
 
 	telnet.listen(23);
 	enableDebug.initCommand();
+
+//	initSPI();
 }
 
 
+//#define SerialDebug
 void init()
 {
 	spiffs_mount(); // Mount file system, in order to work with files
 
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
+#ifdef SerialDebug
+	Serial.systemDebugOutput(true); //Allow debug output to serial
+#else
 	Serial.systemDebugOutput(false); //Allow debug output to serial
 
 	// disable UART0 -> used as GPIO for SPI
@@ -130,33 +166,19 @@ void init()
 
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
 	pinMode(SPI_MOSI, INPUT_PULLUP);
+#endif
 
 	// start debug, will be used through telnet
 	Debug.start();
-
-	// initialize Soft SPI
-	pSoftSPI = new SPISoft(SPI_MISO, SPI_MOSI, SPI_CLK, SPI_CS, SPI_DELAY, SPI_BYTE_DELAY);
-	if(pSoftSPI)
-	{
-		delay(100);
-
-		pSoftSPI->begin();
-		Debug.printf("SPI is initialized now.");
-
-		SPIChainLen = myMove.getSPIBufferLen() + myAI.getSPIBufferLen() + myDDS.getSPIBufferLen();
-		if (SPIChainLen > sizeof(SPI_Buffer)) return;
-
-		//start listen loop
-		procTimer.initializeMs(100, loop).start();
-	}
-	else Serial.print("Error not enough heap\n");
+	Debug.println("Start Wifi");
 
 	WifiStation.enable(true);
-	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
+//	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
+	WifiStation.config(WIFI_SSID, WIFI_PWD);
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();
-
+	Debug.println("wait for connect");
 	// Run our method when station was connected to AP
 	WifiStation.waitConnection(connectOk);
 }

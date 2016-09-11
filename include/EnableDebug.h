@@ -11,6 +11,7 @@
 #include <SmingCore/Network/TelnetServer.h>
 
 extern TelnetServer telnet;
+extern void initSPI(unsigned int time);
 
 class EnableDebug
 {
@@ -22,6 +23,7 @@ public:
 private:
 	bool status = true;
 	void processEnableDebug(String commandLine, CommandOutput* commandOutput);
+	void processStartSPI(String commandLine, CommandOutput* commandOutput);
 };
 
 

@@ -17,9 +17,23 @@ EnableDebug::~EnableDebug()
 
 void EnableDebug::initCommand()
 {
-	commandHandler.registerCommand(CommandDelegate("enableDebug","Enable Debug Command from Class","Application",commandFunctionDelegate(&EnableDebug::processEnableDebug,this)));
+	commandHandler.registerCommand(CommandDelegate("enDebug","Enable Debug Command from Class","Application",commandFunctionDelegate(&EnableDebug::processEnableDebug,this)));
+	commandHandler.registerCommand(CommandDelegate("startSPI","Start SPI","Application",commandFunctionDelegate(&EnableDebug::processStartSPI,this)));
 }
+void EnableDebug::processStartSPI(String commandLine, CommandOutput* commandOutput)
+{
+	Vector<String> commandToken;
+	int numToken = splitString(commandLine, ' ' , commandToken);
 
+	if (numToken == 1) {
+		commandOutput->printf("Start SPI\r\n");
+		initSPI(1000);
+	} else if (numToken == 2) {
+		initSPI(atoi(commandToken[1].c_str()));
+
+	}
+
+}
 void EnableDebug::processEnableDebug(String commandLine, CommandOutput* commandOutput)
 {
 	Vector<String> commandToken;
