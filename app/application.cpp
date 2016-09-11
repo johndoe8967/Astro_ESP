@@ -16,19 +16,19 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #include "webServer.h"
 
 // If you want, you can define WiFi settings globally in Eclipse Environment Variables
-#ifndef WIFI_SSID
-	#define WIFI_SSID "PleaseEnterSSID" // Put you SSID and Password here
-	#define WIFI_PWD "PleaseEnterPass"
+#ifndef WIFI_SSID_Daheim
+	#define WIFI_SSID_Daheim "daham2" // Put you SSID and Password here
+	#define WIFI_PWD_Daheim "47110815"
 #endif
 
 /*(!) Warning on some hardware versions (ESP07, maybe ESP12)
  * 		pins GPIO4 and GPIO5 are swapped !*/
-#define SPI_MISO 5	/* Master In Slave Out */
-#define SPI_MOSI 4	/* Master Out Slave In */
-#define SPI_CLK 15	/* Serial Clock */
-#define SPI_DELAY 1	/* Clock Delay */
+#define SPI_MISO 3	/* Master In Slave Out */
+#define SPI_MOSI 1	/* Master Out Slave In */
+#define SPI_CLK  0	/* Serial Clock */
+#define SPI_CS  2	/* Slave Select */
+#define SPI_DELAY 10	/* Clock Delay */
 #define SPI_BYTE_DELAY 10 /* Delay between Bytes */
-#define SPI_CS 13	/* Slave Select */
 
 Timer procTimer;
 SPISoft *pSoftSPI = NULL;
@@ -80,9 +80,14 @@ void init()
 	spiffs_mount(); // Mount file system, in order to work with files
 
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
-	Serial.systemDebugOutput(true); //Allow debug output to serial
+	Serial.systemDebugOutput(false); //Allow debug output to serial
 
-	Serial.print("ASTRO ESP\n\n");
+	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3);
+	pinMode(SPI_MISO, INPUT_PULLUP);
+
+	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
+	pinMode(SPI_MOSI, INPUT_PULLUP);
+
 
 	Debug.start();
 
@@ -101,7 +106,7 @@ void init()
 	else Serial.print("Error not enough heap\n");
 
 	WifiStation.enable(true);
-	WifiStation.config(WIFI_SSID, WIFI_PWD);
+	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();
