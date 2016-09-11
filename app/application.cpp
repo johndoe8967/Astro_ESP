@@ -26,8 +26,6 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 	#define WIFI_PWD_Daheim "47110815"
 #endif
 
-/*(!) Warning on some hardware versions (ESP07, maybe ESP12)
- * 		pins GPIO4 and GPIO5 are swapped !*/
 #define SPI_MISO 3	/* Master In Slave Out */
 #define SPI_MOSI 1	/* Master Out Slave In */
 #define SPI_CLK  0	/* Serial Clock */
@@ -35,26 +33,31 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #define SPI_DELAY 10	/* Clock Delay */
 #define SPI_BYTE_DELAY 10 /* Delay between Bytes */
 
-Timer procTimer;
+
+Timer procTimer;			// cyclic Timer processing SPI loop and devices
 SPISoft *pSoftSPI = NULL;
+
+// Devices on the SPI loop
 SPI_DDS  myDDS;
 SPI_Move myMove;
 SPI_AI   myAI;
-
-TelnetServer telnet;
-EnableDebug enableDebug;
-
-//#define PING_PERIOD_MS 2000
-//#define PING_WAIT_PONG_MS 100
-//unsigned long lastPingTime;
-
-unsigned char bytes[16];
-unsigned char buffer[16] = {0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-unsigned char *pBuffer, *pSource;
 unsigned char SPIChainLen;
 
+// debug output instead of UART
+TelnetServer telnet;
+EnableDebug enableDebug;	// enable debug output command
+
+
+unsigned char bytes[16];	// bytes received through websocket
+unsigned char SPI_Buffer[16] = {0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+unsigned char *pBuffer, *pSource;
+
+// cyclic loop
 void loop() {
-	pBuffer = buffer;
+	pBuffer = SPI_Buffer;
+
+	// copy out data from devices to SPI buffer
+	// inverse order of chain
 	pSource = myDDS.getSPIOutBuffer();
 	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
 	pBuffer += myMove.getSPIBufferLen();
@@ -67,30 +70,32 @@ void loop() {
 	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
 	pBuffer += myMove.getSPIBufferLen();
 
-#ifdef debug
-	memcpy(buffer, bytes, sizeof(buffer));
+#ifdef debug	// use bytes from websocked instead of SPI devices
+	memcpy(SPI_Buffer, bytes, sizeof(SPI_Buffer));
 #endif
 
-
+	// show SPI Output before sending
 	Debug.printf("SPI OUT:");
 	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("%x ",buffer[i]);
+		Debug.printf("%x ",SPI_Buffer[i]);
 	}
 	Debug.printf("\n\r");
 
+	// transmit SPI_Buffer
 	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
-	delayMicroseconds(1);
-	pSoftSPI->transfer(buffer,SPIChainLen);
+	pSoftSPI->transfer(SPI_Buffer,SPIChainLen);
 	pSoftSPI->endTransaction();
 
+	// show SPI Input after receiving
 	Debug.printf("SPI IN:");
 	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("%x ",buffer[i]);
+		Debug.printf("%x ",SPI_Buffer[i]);
 	}
 	Debug.printf("\n\r");
 
-	pBuffer = buffer;
+	pBuffer = SPI_Buffer;
 
+	// copy received data from SPI_Buffer to devices
 	myMove.setSPIInBuffer(pBuffer);
 	pBuffer += myMove.getSPIBufferLen();
 
@@ -104,11 +109,9 @@ void loop() {
 // Will be called when WiFi station was connected to AP
 void connectOk()
 {
-	Serial.println("I'm CONNECTED");
 	startWebServer();
 
 	telnet.listen(23);
-
 	enableDebug.initCommand();
 }
 
@@ -120,26 +123,27 @@ void init()
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
 	Serial.systemDebugOutput(false); //Allow debug output to serial
 
+	// disable UART0 -> used as GPIO for SPI
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3);
 	pinMode(SPI_MISO, INPUT_PULLUP);
 
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
 	pinMode(SPI_MOSI, INPUT_PULLUP);
 
-
+	// start debug, will be used through telnet
 	Debug.start();
 
+	// initialize Soft SPI
 	pSoftSPI = new SPISoft(SPI_MISO, SPI_MOSI, SPI_CLK, SPI_CS, SPI_DELAY, SPI_BYTE_DELAY);
 	if(pSoftSPI)
 	{
 		delay(100);
 
-		//initialise radio with default settings
 		pSoftSPI->begin();
 		Debug.printf("SPI is initialized now.");
 
 		SPIChainLen = myMove.getSPIBufferLen() + myAI.getSPIBufferLen() + myDDS.getSPIBufferLen();
-		if (SPIChainLen > sizeof(buffer)) return;
+		if (SPIChainLen > sizeof(SPI_Buffer)) return;
 
 		//start listen loop
 		procTimer.initializeMs(100, loop).start();
@@ -151,9 +155,7 @@ void init()
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();
-	Debug.setDebug(Serial);
 
 	// Run our method when station was connected to AP
 	WifiStation.waitConnection(connectOk);
-
 }
