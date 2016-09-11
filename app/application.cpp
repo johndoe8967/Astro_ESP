@@ -84,6 +84,7 @@ void loop() {
 	Debug.printf("\r\n");
 
 	// transmit SPI_Buffer
+	delayMicroseconds(SPI_DELAY);
 	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
 	pSoftSPI->transfer(SPI_Buffer,SPIChainLen);
 	pSoftSPI->endTransaction();
@@ -173,8 +174,8 @@ void init()
 	Debug.println("Start Wifi");
 
 	WifiStation.enable(true);
-//	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
-	WifiStation.config(WIFI_SSID, WIFI_PWD);
+	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
+//	WifiStation.config(WIFI_SSID, WIFI_PWD);
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();

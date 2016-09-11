@@ -18,10 +18,10 @@ void sendSPIData(unsigned char bytes[16]) {
 		outData += String(bytes[i],16);
 		outData += ',';
 	}
-	String message = "{\"type\":\"JSON\",\"msg\":\"SPIIN\",\"value\":" + outData + "}";
+	String message = "{\"type\": \"JSON\",\"msg\": \"SPIIN\", \"value\": \"" + outData + "\"}";
 
 	for (int i = 0; i < clients.count(); i++)
-		clients[i].sendString(outData);
+		clients[i].sendString(message);
 }
 
 

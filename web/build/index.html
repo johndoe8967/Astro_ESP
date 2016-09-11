@@ -39,7 +39,7 @@
 		var msg = JSON.parse(evt.data);
 		switch (msg.type) {
 		case "JSON":
-			if ((loaded == 1) && (msg.msg == "SPIIN")) {
+			if (msg.msg == "SPIIN") {
 				var inbytes = document.getElementById("inbytes");
 				inbytes.value = msg.value;
 			}
