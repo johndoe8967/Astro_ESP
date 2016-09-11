@@ -8,9 +8,11 @@
 #ifndef INCLUDE_WEBSERVER_H_
 #define INCLUDE_WEBSERVER_H_
 
-void startWebServer();
-
 extern unsigned char bytes[16];
+
+void startWebServer();
+void sendSPIData(unsigned char bytes[16]);
+
 
 
 #endif /* INCLUDE_WEBSERVER_H_ */

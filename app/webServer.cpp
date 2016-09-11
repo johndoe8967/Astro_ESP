@@ -10,6 +10,21 @@
 HttpServer server;
 int totalActiveSockets = 0;
 
+WebSocketsList &clients=server.getActiveWebSockets();
+
+void sendSPIData(unsigned char bytes[16]) {
+	String outData;
+	for (char i=0; i<16; i++) {
+		outData += String(bytes[i],16);
+		outData += ',';
+	}
+	String message = "{\"type\":\"JSON\",\"msg\":\"SPIIN\",\"value\":" + outData + "}";
+
+	for (int i = 0; i < clients.count(); i++)
+		clients[i].sendString(outData);
+}
+
+
 void onIndex(HttpRequest &request, HttpResponse &response)
 {
 	TemplateFileStream *tmpl = new TemplateFileStream("index.html");
@@ -110,6 +125,7 @@ void startWebServer()
 
 	Debug.printf("\r\n=== WEB SERVER STARTED ===");
 }
+
 
 
 

@@ -1,9 +1,6 @@
 <!DOCTYPE html>
-
 <meta charset="utf-8" />
-
-<title>WebSocket Test</title>
-
+<title>Astro SPI WebSocket</title>
 <script language="javascript" type="text/javascript">
 	var output;
 
@@ -39,9 +36,15 @@
 	}
 
 	function onMessage(evt) {
-		writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data
-				+ '</span>');
-		//websocket.close();
+		var msg = JSON.parse(evt.data);
+		switch (msg.type) {
+		case "JSON":
+			if ((loaded == 1) && (msg.msg == "SPIIN")) {
+				var inbytes = document.getElementById("inbytes");
+				inbytes.value = msg.value;
+			}
+			break;
+		}
 	}
 
 	function onError(evt) {
@@ -66,8 +69,7 @@
 		websocket.close();
 	}
 	function sendBytes() {
-		var bytes = document.getElementById("bytes");
-		bytes.value
+		var bytes = document.getElementById("outbytes");
 		var message = {
 			type : "JSON",
 			msg : "bytes",
@@ -84,9 +86,12 @@
 		value="X" title="Disconnect WS" />
 </h2>
 <div class="form-group">
-	<label>Bytes: </label> <input class="form-control" type="string"
-		id="bytes" name="bytes" size="80"value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
+	<label>SPI Out Bytes: </label> <input class="form-control" type="string"
+		id="outbytes" name="outbytes" size="80" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 		onkeydown="if (event.keyCode == 13) sendBytes()">
 </div>
-
+<div class="form-group">
+	<label>SPI In Bytes: </label> <input class="form-control" type="string"
+		id="inbytes" name="inbytes" size="80">
+</div>
 <div id="output"></div>

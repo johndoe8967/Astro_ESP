@@ -93,6 +93,7 @@ void loop() {
 	}
 	Debug.printf("\n\r");
 
+	sendSPIData(SPI_Buffer);
 	pBuffer = SPI_Buffer;
 
 	// copy received data from SPI_Buffer to devices
