@@ -11,9 +11,14 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #include <SmingCore/SmingCore.h>
 #include <SmingCore/Network/TelnetServer.h>
 #include <string.h>
+#include "SPIDDS.h"
+#include "SPIMove.h"
+#include "SPIAI.h"
 
 #include "../include/EnableDebug.h"
 #include "webServer.h"
+
+#define debug
 
 // If you want, you can define WiFi settings globally in Eclipse Environment Variables
 #ifndef WIFI_SSID_Daheim
@@ -32,6 +37,10 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 
 Timer procTimer;
 SPISoft *pSoftSPI = NULL;
+SPI_DDS  myDDS;
+SPI_Move myMove;
+SPI_AI   myAI;
+
 TelnetServer telnet;
 EnableDebug enableDebug;
 
@@ -40,27 +49,56 @@ EnableDebug enableDebug;
 //unsigned long lastPingTime;
 
 unsigned char bytes[16];
-unsigned char buffer[16] = {0x00,0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
+unsigned char buffer[16] = {0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+unsigned char *pBuffer, *pSource;
+unsigned char SPIChainLen;
 
 void loop() {
+	pBuffer = buffer;
+	pSource = myDDS.getSPIOutBuffer();
+	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
+	pBuffer += myMove.getSPIBufferLen();
+
+	pSource = myAI.getSPIOutBuffer();
+	memcpy(pBuffer, pSource, myAI.getSPIBufferLen());
+	pBuffer += myAI.getSPIBufferLen();
+
+	pSource = myMove.getSPIOutBuffer();
+	memcpy(pBuffer, pSource, myMove.getSPIBufferLen());
+	pBuffer += myMove.getSPIBufferLen();
+
+#ifdef debug
 	memcpy(buffer, bytes, sizeof(buffer));
+#endif
+
 
 	Debug.printf("SPI OUT:");
-	for (int i=0;i<sizeof(buffer);i++) {
+	for (int i=0;i<SPIChainLen;i++) {
 		Debug.printf("%x ",buffer[i]);
 	}
-	Debug.printf("\n");
+	Debug.printf("\n\r");
 
 	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
 	delayMicroseconds(1);
-	pSoftSPI->transfer(buffer,sizeof(buffer));
+	pSoftSPI->transfer(buffer,SPIChainLen);
 	pSoftSPI->endTransaction();
 
 	Debug.printf("SPI IN:");
-	for (int i=0;i<sizeof(buffer);i++) {
+	for (int i=0;i<SPIChainLen;i++) {
 		Debug.printf("%x ",buffer[i]);
 	}
-	Debug.printf("\n");
+	Debug.printf("\n\r");
+
+	pBuffer = buffer;
+
+	myMove.setSPIInBuffer(pBuffer);
+	pBuffer += myMove.getSPIBufferLen();
+
+	myAI.setSPIInBuffer(pBuffer);
+	pBuffer += myAI.getSPIBufferLen();
+
+	myDDS.setSPIInBuffer(pBuffer);
+	pBuffer += myDDS.getSPIBufferLen();
 }
 
 // Will be called when WiFi station was connected to AP
@@ -99,6 +137,9 @@ void init()
 		//initialise radio with default settings
 		pSoftSPI->begin();
 		Debug.printf("SPI is initialized now.");
+
+		SPIChainLen = myMove.getSPIBufferLen() + myAI.getSPIBufferLen() + myDDS.getSPIBufferLen();
+		if (SPIChainLen > sizeof(buffer)) return;
 
 		//start listen loop
 		procTimer.initializeMs(100, loop).start();
