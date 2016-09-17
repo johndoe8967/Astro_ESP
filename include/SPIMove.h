@@ -19,7 +19,8 @@ public:
 	virtual ~SPI_Move();
 
 	void setSPIInBuffer(unsigned char *newData);
-	inline unsigned char getSPIBufferLen() {return MOVESPIBufLen;};
+	inline size_t getSPIBufferLen() {return MOVESPIBufLen;};
+	unsigned char* getSPIBuffer() {calcSPIOutBuffer(); return bytes;};
 
 
 	long getPos(unsigned char ch) { if (ch<2) { return increments[ch]; } else return 0;};
@@ -31,7 +32,7 @@ public:
 private:
 	void calcSPIOutBuffer();
 
-	unsigned char bytes[MOVESPIBufLen];
+	unsigned char *bytes;
 	int increments[NUM_CHANNELS];
 	char motor_pwm[NUM_CHANNELS];
 	char LEDs;

@@ -12,14 +12,22 @@ int totalActiveSockets = 0;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
-void sendSPIData(unsigned char bytes[16]) {
+void sendSPIData(unsigned char bytes[11]) {
 	String outData;
-	for (char i=0; i<16; i++) {
+	for (char i=0; i<11; i++) {
 		outData += String(bytes[i],16);
 		outData += ',';
 	}
 	String message = "{\"type\": \"JSON\",\"msg\": \"SPIIN\", \"value\": \"" + outData + "\"}";
 
+	for (int i = 0; i < clients.count(); i++)
+		clients[i].sendString(message);
+}
+
+void sendMessage(const char *msg, const char *value) {
+	String msg_string = String(msg);
+	String val_string = String(value);
+	String message = "{\"type\": \"JSON\",\"msg\": \""+ msg_string +"\", \"value\": \"" + val_string + "\"}";
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
 }
@@ -73,19 +81,53 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 			const char* buffer;
 			char* end;
 			value = root["value"].asString();
-			Debug.print("InMessage:");
-			Debug.println(value);
-
 			buffer = value.c_str();
 
 			char temp[10];
 			for (char i=0; i<sizeof(bytes); i++) {
 				bytes[i] = (unsigned char)strtol (buffer,&end,16);
 				buffer = end + 1;
-				Debug.print("Byte ");
-				itoa(bytes[i],temp,10);
-				Debug.println(temp);
 			}
+		}
+		if (value==String("enableDebug")) {
+			enableBytesOut = root["value"];
+		}
+		if (value==String("magnet")) {
+			if (root["value"] == 1) {
+				myDDS->setMagnet();
+			} else {
+				myDDS->clrMagnet();
+			}
+		}
+		if (value==String("motor1")) {
+			char pwm = root["value"];
+			myMove->setPWM(0,pwm);
+		}
+		if (value==String("motor2")) {
+			char pwm = root["value"];
+			myMove->setPWM(1,pwm);
+		}
+		if (value==String("DDSLED")) {
+			int LED = root["value"];
+			if (LED < 0) {
+				LED *= -1;
+				myDDS->clrLED(LED-1);
+			} else {
+				myDDS->setLED(LED-1);
+			}
+		}
+		if (value==String("MOTLED")) {
+			int LED = root["value"];
+			if (LED < 0) {
+				LED *= -1;
+				myMove->clrLED(LED-1);
+			} else {
+				myMove->setLED(LED-1);
+			}
+		}
+		if (value==String("frequency")) {
+			unsigned long freq = root["value"];
+			myDDS->setDDSValue(freq);
 		}
 		if (value==String("WIFI")) {
 			String SSID = root["SSID"].asString();

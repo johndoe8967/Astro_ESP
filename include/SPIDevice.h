@@ -7,17 +7,19 @@
 
 #ifndef APP_SPIDEVICE_H_
 #define APP_SPIDEVICE_H_
+
+#include <user_config.h>
+#include <debug.h>
+
+
 class SPIDevice {
 public:
 	SPIDevice();
-	SPIDevice(unsigned char* pBuffer);
 	virtual ~SPIDevice();
-	unsigned char* getSPIOutBuffer();
 	virtual void setSPIInBuffer(unsigned char *newData){};
-	virtual unsigned char getSPIBufferLen() {};
+	virtual size_t getSPIBufferLen() {};
 private:
 	virtual void calcSPIOutBuffer() {};
-	unsigned char* pSPIData;
 };
 
 #endif /* APP_SPIDEVICE_H_ */

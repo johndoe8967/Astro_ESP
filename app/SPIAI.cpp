@@ -9,12 +9,12 @@
 #include "string.h"
 
 SPI_AI::SPI_AI() {
-	SPIDevice(bytes);
-
+	bytes = new(unsigned char[AISPIBufLen]);
+	Debug.println((long)bytes);
 }
 
 SPI_AI::~SPI_AI() {
-	// TODO Auto-generated destructor stub
+	delete (bytes);
 }
 
 void SPI_AI::setSPIInBuffer(unsigned char *newData) {

@@ -39,10 +39,8 @@
 		var msg = JSON.parse(evt.data);
 		switch (msg.type) {
 		case "JSON":
-			if (msg.msg == "SPIIN") {
-				var inbytes = document.getElementById("inbytes");
-				inbytes.value = msg.value;
-			}
+			var valuefield = document.getElementById(msg.msg);
+			valuefield.value = msg.value;				
 			break;
 		}
 	}
@@ -77,6 +75,26 @@
 		};
 		websocket.send(JSON.stringify(message));
 	}
+	function sendValue(myValue) {
+		var message = {
+			type : "JSON",
+			msg : myValue.name,
+			value : myValue.value
+		};
+		websocket.send(JSON.stringify(message));
+	}
+	function handleClick(myClickable) {
+		var sign = -1;
+		if (myClickable.checked) {
+			sign = 1;
+		}
+		var message = {
+				type : "JSON",
+				msg : myClickable.name,
+				value : myClickable.value*sign
+			};
+			websocket.send(JSON.stringify(message));
+	}
 
 	window.addEventListener("load", init, false);
 </script>
@@ -85,13 +103,56 @@
 	SPI Test <input type="button" id="disconnect" onclick="doDisconnect()"
 		value="X" title="Disconnect WS" />
 </h2>
+<div>
+  <fieldset>
+    <input type="radio" id="de" name="enableDebug" value="1" onclick="handleClick(this);">
+    <label for="de"> Byte Array</label><br> 
+    <input type="radio" id="va" name="enableDebug" value="0" checked="checked" onclick="handleClick(this);">
+    <label for="va"> Variables</label><br> 
+  </fieldset>
+</div>
 <div class="form-group">
 	<label>SPI Out Bytes: </label> <input class="form-control" type="string"
-		id="outbytes" name="outbytes" size="80" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
+		id="outbytes" name="outbytes" size="80" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 		onkeydown="if (event.keyCode == 13) sendBytes()">
+	<label>SPI In Bytes: </label> <input class="form-control" type="string"
+		id="SPIIN" name="inbytes" size="80">
 </div>
 <div class="form-group">
-	<label>SPI In Bytes: </label> <input class="form-control" type="string"
-		id="inbytes" name="inbytes" size="80">
+  <fieldset>
+	<label>Frequency: </label> <input class="form-control" type="number"
+		id="frequency" name="frequency" size="10" value="0"
+		onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Magnet</label> 
+		<input type="checkbox" name="magnet" value="1" onclick="handleClick(this);">
+	<label>DDS Leds</label>
+	<input type="checkbox" name="DDSLED" value="1" onclick="handleClick(this);">
+	<input type="checkbox" name="DDSLED" value="2" onclick="handleClick(this);">
+	<input type="checkbox" name="DDSLED" value="3" onclick="handleClick(this);">
+	<input type="checkbox" name="DDSLED" value="4" onclick="handleClick(this);">
+	<br>
+  </fieldset>
 </div>
+<div class="form-group">
+  <fieldset>
+	<label>Motor 1: </label> <input class="form-control" type="number"
+		id="mot1" name="motor1" size="3" value="0"
+		onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Motor 2: </label> <input class="form-control" type="number"
+		id="mot1" name="motor2" size="3" value="0"
+		onkeydown="if (event.keyCode == 13) sendValue(this)">
+		
+	<label>Motor Leds</label>
+	<input type="checkbox" name="MOTLED" value="1" onclick="handleClick(this);">
+	<input type="checkbox" name="MOTLED" value="2" onclick="handleClick(this);">
+	<input type="checkbox" name="MOTLED" value="3" onclick="handleClick(this);">
+	<input type="checkbox" name="MOTLED" value="4" onclick="handleClick(this);">
+	<br>
+	<label>Position 1:</label> <input class="form-control" type="number" id="incr0" size="10" value="0" disabled>
+	<label>Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0" disabled>
+	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
+	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
+  </fieldset>
+</div>
+
 <div id="output"></div>

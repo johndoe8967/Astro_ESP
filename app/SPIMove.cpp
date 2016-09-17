@@ -8,11 +8,15 @@
 #include "SPIMove.h"
 
 SPI_Move::SPI_Move() {
-	SPIDevice(bytes);
+	bytes = new(unsigned char[MOVESPIBufLen]);
+	Debug.println((long)bytes);
+	motor_pwm[0] = 0x00;
+	motor_pwm[1] = 0x00;
+	LEDs		 = 0x00;
 }
 
 SPI_Move::~SPI_Move() {
-	// TODO Auto-generated destructor stub
+	delete(bytes);
 }
 
 void SPI_Move::setSPIInBuffer(unsigned char *newData) {
@@ -27,7 +31,7 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 };
 
 void SPI_Move::calcSPIOutBuffer() {
-	bytes[0] = motor_pwm[0];
+	bytes[2] = motor_pwm[0];
 	bytes[1] = motor_pwm[1];
-	bytes[2] = LEDs;
+	bytes[0] = LEDs;
 }

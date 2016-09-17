@@ -19,13 +19,15 @@ public:
 	virtual ~SPI_AI();
 
 	void setSPIInBuffer(unsigned char *newData);
-	inline unsigned char getSPIBufferLen() {return AISPIBufLen;};
+	inline size_t getSPIBufferLen() {return AISPIBufLen;};
+	unsigned char* getSPIBuffer() {calcSPIOutBuffer(); return bytes;};
 
 	int getAI(unsigned char ch) {if (ch<2) {return AI[ch];}};
 
 private:
 	void calcSPIOutBuffer();
-	unsigned char bytes[AISPIBufLen];
+
+	unsigned char *bytes;
 	int AI[NUM_CHANNELS];
 
 };
