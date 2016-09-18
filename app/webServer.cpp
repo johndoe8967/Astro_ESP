@@ -143,10 +143,17 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 				}
 			}
 			if (value==String("POSCTRL")) {
-				if (LED < 0) {
+				if (LED == 0) {
 					myMove->posControlEnable(0);
-				} else {
+					usePoti = 0;
+				}
+				if (LED == 1) {
 					myMove->posControlEnable(1);
+					usePoti = 0;
+				}
+				if (LED == 2) {
+					myMove->posControlEnable(0);
+					usePoti = 1;
 				}
 			}
 		}

@@ -148,8 +148,12 @@
 	<input type="checkbox" name="MOTLED" value="3" onclick="handleClick(this);">
 	<input type="checkbox" name="MOTLED" value="4" onclick="handleClick(this);">
 	<br>
+	<label>Manuell</label>
+	<input type="radio" name="POSCTRL" value="0" onclick="handleClick(this);" checked="checked">
 	<label>Positionsregler</label>
-	<input type="checkbox" name="POSCTRL" value="1" onclick="handleClick(this);">
+	<input type="radio" name="POSCTRL" value="1" onclick="handleClick(this);">
+	<label>Potigeschwindigkeit</label>
+	<input type="radio" name="POSCTRL" value="2" onclick="handleClick(this);">
 	<br>
 	<label>Set Position 1:</label> <input class="form-control" type="number" id="target0" name="target0" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">
 	<label>Set Position 2:</label> <input class="form-control" type="number" id="target1" name="target1" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">

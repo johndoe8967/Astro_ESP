@@ -50,6 +50,7 @@ SPI_DDS  *myDDS = null;
 SPI_Move *myMove = null;
 SPI_AI   *myAI = null;
 unsigned char SPIChainLen=11;
+unsigned char usePoti;
 
 // debug output instead of UART
 TelnetServer telnet;
@@ -139,6 +140,11 @@ void loop() {
 
 	myMove->setSPIInBuffer(pBuffer);
 	pBuffer += myMove->getSPIBufferLen();
+
+	if (usePoti) {
+		myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
+		myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
+	}
 
 	if (sendIndicator) {
 		ltoa(myMove->getPos(0),value_msg,10);

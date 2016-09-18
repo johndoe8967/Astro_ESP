@@ -17,6 +17,7 @@ extern SPI_DDS  *myDDS;
 extern SPI_Move *myMove;
 extern SPI_AI   *myAI;
 extern unsigned char enableBytesOut;
+extern unsigned char usePoti;
 
 void startWebServer();
 void sendSPIData(unsigned char bytes[11]);
