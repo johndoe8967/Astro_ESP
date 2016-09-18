@@ -28,8 +28,8 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 		temp += *newData;
 		newData++;
 	}
-	increments[0] = temp & 0x000fff;
-	increments[1] = (temp & 0xfff000) >> 12;
+	increments[1] = temp & 0x000fff;
+	increments[0] = (temp & 0xfff000) >> 12;
 };
 
 void SPI_Move::calcSPIOutBuffer() {
@@ -37,8 +37,17 @@ void SPI_Move::calcSPIOutBuffer() {
 		calcControlLoop(0);
 		calcControlLoop(1);
 	}
-	bytes[2] = motor_pwm[0];
-	bytes[1] = motor_pwm[1];
+	if (motor_pwm[0] <= 0x80) {
+		bytes[2] = 0x80 - motor_pwm[0];
+	} else {
+		bytes[2] = motor_pwm[0];
+	}
+
+	if (motor_pwm[1] <= 0x80) {
+		bytes[1] = 0x80 - motor_pwm[1];
+	} else {
+		bytes[1] = motor_pwm[1];
+	}
 	bytes[0] = LEDs;
 }
 

@@ -19,7 +19,7 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #include "webServer.h"
 
 //#define debug
-#define SerialDebug
+//#define SerialDebug
 
 
 // If you want, you can define WiFi settings globally in Eclipse Environment Variables
@@ -131,14 +131,14 @@ void loop() {
 
 	char value_msg[10];
 	// copy received data from SPI_Buffer to devices
-	myMove->setSPIInBuffer(pBuffer);
-	pBuffer += myMove->getSPIBufferLen();
+	myDDS->setSPIInBuffer(pBuffer);
+	pBuffer += myDDS->getSPIBufferLen();
 
 	myAI->setSPIInBuffer(pBuffer);
 	pBuffer += myAI->getSPIBufferLen();
 
-	myDDS->setSPIInBuffer(pBuffer);
-	pBuffer += myDDS->getSPIBufferLen();
+	myMove->setSPIInBuffer(pBuffer);
+	pBuffer += myMove->getSPIBufferLen();
 
 	if (sendIndicator) {
 		ltoa(myMove->getPos(0),value_msg,10);
@@ -236,8 +236,8 @@ void init()
 	Debug.start();
 
 	WifiStation.enable(true);
-//	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
-	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
+	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
+//	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();
