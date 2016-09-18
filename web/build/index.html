@@ -113,10 +113,10 @@
 </div>
 <div class="form-group">
 	<label>SPI Out Bytes: </label> <input class="form-control" type="string"
-		id="outbytes" name="outbytes" size="80" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
+		id="outbytes" name="outbytes" size="60" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 		onkeydown="if (event.keyCode == 13) sendBytes()">
 	<label>SPI In Bytes: </label> <input class="form-control" type="string"
-		id="SPIIN" name="inbytes" size="80">
+		id="SPIIN" name="inbytes" size="60">
 </div>
 <div class="form-group">
   <fieldset>
@@ -148,8 +148,18 @@
 	<input type="checkbox" name="MOTLED" value="3" onclick="handleClick(this);">
 	<input type="checkbox" name="MOTLED" value="4" onclick="handleClick(this);">
 	<br>
-	<label>Position 1:</label> <input class="form-control" type="number" id="incr0" size="10" value="0" disabled>
-	<label>Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0" disabled>
+	<label>Positionsregler</label>
+	<input type="checkbox" name="POSCTRL" value="1" onclick="handleClick(this);">
+	<br>
+	<label>Set Position 1:</label> <input class="form-control" type="number" id="target0" name="target0" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Set Position 2:</label> <input class="form-control" type="number" id="target1" name="target1" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<br>	
+	<label>Act Position 1:</label> <input class="form-control" type="number" id="incr0" size="10" value="0" disabled>
+	<label>Act Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0" disabled>
+	<br>
+	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onkeydown="if (event.keyCode == 13) sendValue(this)">		
+	<br>
 	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
 	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
   </fieldset>

@@ -59,11 +59,6 @@ void onFile(HttpRequest &request, HttpResponse &response)
 void wsConnected(WebSocket& socket)
 {
 	totalActiveSockets++;
-
-	// Notify everybody about new connection
-	WebSocketsList &clients = server.getActiveWebSockets();
-//	for (int i = 0; i < clients.count(); i++)
-//		clients[i].sendString("New friend arrived! Total: " + String(totalActiveSockets));
 }
 
 void wsMessageReceived(WebSocket& socket, const String& message)
@@ -71,6 +66,7 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 	debugf("WebSocket message received:\r\n%s\r\n", message.c_str());
 //	String response = "Echo: " + message;
 //	socket.sendString(response);
+	Debug.println(message);
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(message);
 
@@ -99,30 +95,59 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 				myDDS->clrMagnet();
 			}
 		}
-		if (value==String("motor1")) {
-			char pwm = root["value"];
-			myMove->setPWM(0,pwm);
-		}
-		if (value==String("motor2")) {
-			char pwm = root["value"];
-			myMove->setPWM(1,pwm);
-		}
-		if (value==String("DDSLED")) {
-			int LED = root["value"];
-			if (LED < 0) {
-				LED *= -1;
-				myDDS->clrLED(LED-1);
-			} else {
-				myDDS->setLED(LED-1);
+
+		{
+			float val = root["value"];
+			if (value==String("Pgain0")) {
+				myMove->setPControl(0,val);
+			}
+			if (value==String("Pgain1")) {
+				myMove->setPControl(1,val);
 			}
 		}
-		if (value==String("MOTLED")) {
+		{
+			char pwm = root["value"];
+			if (value==String("motor1")) {
+				myMove->setPWM(0,pwm);
+			}
+			if (value==String("motor2")) {
+				myMove->setPWM(1,pwm);
+			}
+		}
+
+		{
+			long targetPos = root["value"];
+			if (value==String("target0")) {
+				myMove->setPosition(0,targetPos);
+			}
+			if (value==String("target1")) {
+				myMove->setPosition(1,targetPos);
+			}
+		}
+		{
 			int LED = root["value"];
-			if (LED < 0) {
-				LED *= -1;
-				myMove->clrLED(LED-1);
-			} else {
-				myMove->setLED(LED-1);
+			if (value==String("DDSLED")) {
+				if (LED < 0) {
+					LED *= -1;
+					myDDS->clrLED(LED-1);
+				} else {
+					myDDS->setLED(LED-1);
+				}
+			}
+			if (value==String("MOTLED")) {
+				if (LED < 0) {
+					LED *= -1;
+					myMove->clrLED(LED-1);
+				} else {
+					myMove->setLED(LED-1);
+				}
+			}
+			if (value==String("POSCTRL")) {
+				if (LED < 0) {
+					myMove->posControlEnable(0);
+				} else {
+					myMove->posControlEnable(1);
+				}
 			}
 		}
 		if (value==String("frequency")) {

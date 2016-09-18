@@ -41,6 +41,8 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 
 
 Timer procTimer;			// cyclic Timer processing SPI loop and devices
+unsigned int loopTime;
+unsigned int reductionCounter;
 SPISoft *pSoftSPI = NULL;
 
 // Devices on the SPI loop
@@ -59,6 +61,11 @@ unsigned char SPI_Buffer[11] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0
 unsigned char *pBuffer, *pSource;
 
 // cyclic loop
+/***************************************************************
+ * cyclic loop / main task
+ * 	debug mode without SPI device classes (only byte array IO)
+ *
+ */
 void loop() {
 
 	// copy out data from devices to SPI buffer
@@ -82,12 +89,21 @@ void loop() {
 		pBuffer += myMove->getSPIBufferLen();
 	}
 
-	// show SPI Output before sending
-	Debug.printf("SPI OUT:");
-	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("0x%02x ",SPI_Buffer[i]);
+	reductionCounter++;
+	unsigned int reduction = 1000 / loopTime;
+	bool sendIndicator = 0;
+	if (reductionCounter >= reduction) {
+		sendIndicator = 1;
+		reductionCounter = 0;
 	}
-	Debug.printf("\r\n");
+	if (enableDebug.getDebugEnabled() & sendIndicator) {
+		// show SPI Output before sending
+		Debug.printf("SPI OUT:");
+		for (int i=0;i<SPIChainLen;i++) {
+			Debug.printf("0x%02x ",SPI_Buffer[i]);
+		}
+		Debug.printf("\r\n");
+	}
 
 
 	// transmit SPI_Buffer
@@ -98,45 +114,55 @@ void loop() {
 	pSoftSPI->endTransaction();
 #endif
 
-	// show SPI Input after receiving
-	Debug.printf("SPI IN :");
-	for (int i=0;i<SPIChainLen;i++) {
-		Debug.printf("0x%02x ",SPI_Buffer[i]);
+	if (enableDebug.getDebugEnabled() & sendIndicator) {
+		// show SPI Input after receiving
+		Debug.printf("SPI IN :");
+		for (int i=0;i<SPIChainLen;i++) {
+			Debug.printf("0x%02x ",SPI_Buffer[i]);
+		}
+		Debug.printf("\r\n");
 	}
-	Debug.printf("\r\n");
 
-	sendSPIData(SPI_Buffer);
+	if (sendIndicator) {
+		sendSPIData(SPI_Buffer);
+	}
 
 	pBuffer = SPI_Buffer;
 
 	char value_msg[10];
 	// copy received data from SPI_Buffer to devices
-	Debug.println((long)pBuffer);
 	myMove->setSPIInBuffer(pBuffer);
 	pBuffer += myMove->getSPIBufferLen();
 
-	ltoa(myMove->getPos(0),value_msg,10);
-	sendMessage("incr0",value_msg);
-	ltoa(myMove->getPos(1),value_msg,10);
-	sendMessage("incr1",value_msg);
-
-	Debug.println((long)pBuffer);
 	myAI->setSPIInBuffer(pBuffer);
 	pBuffer += myAI->getSPIBufferLen();
 
-	ltoa(myAI->getAI(0),value_msg,10);
-	sendMessage("AI0",value_msg);
-	ltoa(myAI->getAI(1),value_msg,10);
-	sendMessage("AI1",value_msg);
-
-	Debug.println((long)pBuffer);
 	myDDS->setSPIInBuffer(pBuffer);
 	pBuffer += myDDS->getSPIBufferLen();
+
+	if (sendIndicator) {
+		ltoa(myMove->getPos(0),value_msg,10);
+		sendMessage("incr0",value_msg);
+		ltoa(myMove->getPos(1),value_msg,10);
+		sendMessage("incr1",value_msg);
+		ltoa(myAI->getAI(0),value_msg,10);
+		sendMessage("AI0",value_msg);
+		ltoa(myAI->getAI(1),value_msg,10);
+		sendMessage("AI1",value_msg);
+	}
 }
 
+/***************************************************************
+ * InitSPI
+ * 	fixed loop configuration mandatory
+ * 		all devices will be instantiated here
+ * 	fixed SPI pin configuration
+ * 	cyclic loop with configurable cycletime
+ */
 void initSPI(unsigned int time) {
-	// initialize Soft SPI
+	loopTime = time;
 
+	// initialize Soft SPI
 	if (!myDDS) {
 		Debug.println("newDDS");
 		myDDS = new(SPI_DDS);
@@ -153,13 +179,10 @@ void initSPI(unsigned int time) {
 #ifdef SerialDebug
 	pSoftSPI = null;
 #else
-	Debug.println("preSPI");
 	pSoftSPI = new SPISoft(SPI_MISO, SPI_MOSI, SPI_CLK, SPI_CS, SPI_DELAY, SPI_BYTE_DELAY);
-	Debug.println("postSPI");
 #endif
 	if(pSoftSPI)
 	{
-		Debug.println("pre beginSPI");
 		pSoftSPI->begin();
 		Debug.println("SPI is initialized now.");
 
@@ -167,31 +190,36 @@ void initSPI(unsigned int time) {
 		Debug.printf("SPI Chainlen %d \r\n", SPIChainLen);
 
 		if (SPIChainLen > sizeof(SPI_Buffer)) return;
-
-		//start listen loop
 	}
 	Debug.println("Start SPI Loop");
-	procTimer.initializeMs(time, loop).start();
-	Debug.println("Started SPI Loop");
+	procTimer.initializeMs(loopTime, loop).start();
 }
 
-// Will be called when WiFi station was connected to AP
+/***************************************************************
+ * Connection established
+ * 	start services
+ */
 void connectOk()
 {
 	startWebServer();
-
 	telnet.listen(23);
 	enableDebug.initCommand();
-
-//	initSPI();
 }
 
+/***************************************************************
+ * Init
+ * 	no Serial port usable because of 4 pins of SPI
+ *	Debug through Telnet
+ *	WIFI Station enabled
+ *		TODO: will use WPS, has to be tested with hotspot
+ *
+ */
 void init()
 {
 	spiffs_mount(); // Mount file system, in order to work with files
 
-	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
 #ifdef SerialDebug
+	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
 	Serial.systemDebugOutput(true); //Allow debug output to serial
 #else
 	Serial.systemDebugOutput(false); //Allow debug output to serial
@@ -206,7 +234,6 @@ void init()
 
 	// start debug, will be used through telnet
 	Debug.start();
-	Debug.println("Start Wifi");
 
 	WifiStation.enable(true);
 //	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
@@ -214,7 +241,7 @@ void init()
 	WifiAccessPoint.enable(false);
 
 	commandHandler.registerSystemCommands();
-	Debug.println("wait for connect");
+
 	// Run our method when station was connected to AP
 	WifiStation.waitConnection(connectOk);
 }

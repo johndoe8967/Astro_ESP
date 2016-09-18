@@ -19,6 +19,7 @@ public:
 	EnableDebug();
 	virtual ~EnableDebug();
 	void initCommand();
+	bool getDebugEnabled() {return status;};
 
 private:
 	bool status = true;

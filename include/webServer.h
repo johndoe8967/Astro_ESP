@@ -18,7 +18,6 @@ extern SPI_Move *myMove;
 extern SPI_AI   *myAI;
 extern unsigned char enableBytesOut;
 
-
 void startWebServer();
 void sendSPIData(unsigned char bytes[11]);
 void sendMessage(const char *msg, const char *value);
