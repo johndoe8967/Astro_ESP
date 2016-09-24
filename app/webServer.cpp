@@ -161,6 +161,11 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 			unsigned long freq = root["value"];
 			myDDS->setDDSValue(freq);
 		}
+		if (value==String("filter")) {
+			unsigned char val = root["value"];
+			myAI->setFilter(val);
+		}
+
 		if (value==String("WIFI")) {
 			String SSID = root["SSID"].asString();
 			String PWD = root["PWD"].asString();

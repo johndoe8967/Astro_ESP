@@ -10,6 +10,7 @@
 
 SPI_AI::SPI_AI() {
 	bytes = new(unsigned char[AISPIBufLen]);
+	filter = 1;
 	Debug.println((long)bytes);
 }
 
@@ -30,4 +31,5 @@ void SPI_AI::setSPIInBuffer(unsigned char *newData) {
 
 void SPI_AI::calcSPIOutBuffer() {
 	memset(bytes,0x00,sizeof(bytes));
+	bytes[0] = filter;
 }

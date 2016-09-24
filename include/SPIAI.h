@@ -23,12 +23,14 @@ public:
 	unsigned char* getSPIBuffer() {calcSPIOutBuffer(); return bytes;};
 
 	int getAI(unsigned char ch) {if (ch<2) {return AI[ch];}};
+	void setFilter(unsigned char val) {if (val > 0) filter = val;};
 
 private:
 	void calcSPIOutBuffer();
 
 	unsigned char *bytes;
 	int AI[NUM_CHANNELS];
+	unsigned char filter;
 
 };
 
