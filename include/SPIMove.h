@@ -41,7 +41,7 @@ private:
 
 	unsigned char *bytes;
 	long targetPos[NUM_CHANNELS];
-	int increments[NUM_CHANNELS];
+	long increments[NUM_CHANNELS];
 	int offset[NUM_CHANNELS];
 
 	char motor_pwm[NUM_CHANNELS];
