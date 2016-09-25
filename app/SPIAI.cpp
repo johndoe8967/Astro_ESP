@@ -32,4 +32,7 @@ void SPI_AI::setSPIInBuffer(unsigned char *newData) {
 void SPI_AI::calcSPIOutBuffer() {
 	memset(bytes,0x00,sizeof(bytes));
 	bytes[0] = filter;
+	bytes[1] = filter;
+	bytes[2] = filter;
+	bytes[3] = filter;
 }
