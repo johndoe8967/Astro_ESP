@@ -40,7 +40,8 @@
 		switch (msg.type) {
 		case "JSON":
 			var valuefield = document.getElementById(msg.msg);
-			valuefield.value = msg.value;				
+			valuefield.value = msg.value;
+			calcPos(valuefield);
 			break;
 		}
 	}
@@ -95,6 +96,55 @@
 			};
 			websocket.send(JSON.stringify(message));
 	}
+	function calcPos(myInput) {
+		if (myInput.id == "incr0") {
+			var valuefield = document.getElementById("Azi");
+			valuefield.value = myInput.value / 2000 * 2 / 67 * 360;					
+		}
+		if (myInput.id == "incr1") {
+			var valuefield = document.getElementById("Hour");
+			valuefield.value = HoursMinutesSeconds(myInput.value / (4*12) / 250 * 20 / 80 * 24);					
+		}
+		if (myInput.id == "Azi") {
+			var valuefield = document.getElementById("target0");
+			valuefield.value = myInput.value * 2000 / 2 * 67 / 360;
+			
+		}
+		if (myInput.id == "Hour") {
+			var valuefield = document.getElementById("target1");
+			var d = new Date("1970-01-01T" + myInput.value + "Z");
+			valuefield.value = d.getTime()/1000/86400 * (4*12) * 350 / 20 * 80;
+		}
+	}
+
+	function HoursMinutesSeconds(time) {
+		var h = Math.floor(time);
+		var min = Math.floor(60.0 * frac(time));
+		var secs = Math.round(60.0 * (60.0 * frac(time) - min));
+
+		var str;
+		if (h < 10)
+			str = "0"+h;
+		else 
+			str = h;
+		if (min >= 10)
+			str = str + ":" + min;
+		else
+			str = str + ":0" + min;
+		//if (min==60) str=(h+1)+":00";
+		if (secs < 10)
+			str = str + ":0" + secs;
+		else
+			str = str + ":" + secs;
+		return str;
+	}	
+
+	function frac(X) {
+		X = X - Math.floor(X);
+		if (X < 0)
+			X = X + 1.0;
+		return X;
+	}
 
 	window.addEventListener("load", init, false);
 </script>
@@ -121,7 +171,7 @@
 <div class="form-group">
   <fieldset>
 	<label>Frequency: </label> <input class="form-control" type="number"
-		id="frequency" name="frequency" size="10" value="0"
+		id="frequency" name="frequency" size="10" value="37239843"
 		onkeydown="if (event.keyCode == 13) sendValue(this)">
 	<label>Magnet</label> 
 		<input type="checkbox" name="magnet" value="1" onclick="handleClick(this);">
@@ -155,11 +205,14 @@
 	<label>Potigeschwindigkeit</label>
 	<input type="radio" name="POSCTRL" value="2" onclick="handleClick(this);">
 	<br>
-	<label>Set Position 1:</label> <input class="form-control" type="number" id="target0" name="target0" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">
-	<label>Set Position 2:</label> <input class="form-control" type="number" id="target1" name="target1" size="10" value="0" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Set Position 1:</label> <input class="form-control" type="number" id="target0" name="target0" size="10" value="0" onchange="calcPos(this)" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Set Position 2:</label> <input class="form-control" type="number" id="target1" name="target1" size="10" value="0" onchange="calcPos(this)" onkeydown="if (event.keyCode == 13) sendValue(this)">
 	<br>	
-	<label>Act Position 1:</label> <input class="form-control" type="number" id="incr0" size="10" value="0" disabled>
-	<label>Act Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0" disabled>
+	<label>Act Position 1:</label> <input class="form-control" type="number" id="incr0" size="10" value="0"  onchange="calcPos(this)">
+	<label>Act Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0"  onchange="calcPos(this)">
+	<br>	
+	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi" size="10" value="0" onchange="calcPos(this)">
+	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour" size="10" value="0" onchange="calcPos(this)">
 	<br>
 	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onkeydown="if (event.keyCode == 13) sendValue(this)">
 	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onkeydown="if (event.keyCode == 13) sendValue(this)">		
@@ -167,7 +220,7 @@
 	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
 	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
 	<br>
-	<label>Filter:</label> <input class="form-control" type="number" id="filter" size="10" value="1" onkeydown="if (event.keyCode == 13) sendValue(this)">
+	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="1" onkeydown="if (event.keyCode == 13) sendValue(this)">
   </fieldset>
 </div>
 
