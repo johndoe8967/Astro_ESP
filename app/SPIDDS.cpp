@@ -10,7 +10,7 @@
 SPI_DDS::SPI_DDS() {
 	bytes = new(unsigned char[DDSSPIBufLen]);
 	Debug.println((long)bytes);
-	DDSvalue=0x00000000;
+	DDSvalue=37239843;
 	LEDs	=0x00;
 	magnet	=0x00;
 }
