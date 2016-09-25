@@ -210,6 +210,7 @@ void connectOk()
 	startWebServer();
 	telnet.listen(23);
 	enableDebug.initCommand();
+	initSPI(20);
 }
 
 /***************************************************************
