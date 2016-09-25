@@ -6,12 +6,15 @@
  */
 
 #include "SPIMove.h"
+#include <Debug.h>
 
 SPI_Move::SPI_Move() {
 	bytes = new(unsigned char[MOVESPIBufLen]);
 	Debug.println((long)bytes);
 	motor_pwm[0] = 0x00;
 	motor_pwm[1] = 0x00;
+	increments[0] = 0;
+	increments[1] = 0;
 	LEDs		 = 0x00;
 	offset[0]	 = 0x00;
 	offset[1]	 = 0x00;
@@ -23,7 +26,8 @@ SPI_Move::~SPI_Move() {
 
 void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 	long temp=0;
-	int inctemp;
+	unsigned int inctemp;
+	unsigned int inctempold;
 
 	for (char i=0; i<3; i++) {
 		temp <<= 8;
@@ -31,24 +35,33 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 		newData++;
 	}
 	inctemp =  temp & 0x000fff;
-	if ((inctemp && 0x0800) & !(increments[1] && 0x0800)) {
-		increments[1] -= 0x1000;
-	}
-	if (!(inctemp && 0x0800) & (increments[1] && 0x0800)) {
+	inctempold = increments[1] & 0x0fff;
+
+	if ((int)(inctemp - inctempold) < -2048) {
+		Debug.println("ueberlauf+");
 		increments[1] += 0x1000;
 	}
 
+	if ((int)(inctemp - inctempold) > 2048) {
+		Debug.println("ueberlauf-");
+		increments[1] -= 0x1000;
+	}
 
 	increments[1] &= 0xfffff000;
 	increments[1] |= inctemp;
 
-	inctemp =  (temp & 0xfff000) >> 12;
 
-	if ((inctemp && 0x0800) & !(increments[0] && 0x0800)) {
-		increments[0] -= 0x1000;
-	}
-	if (!(inctemp && 0x0800) & (increments[0] && 0x0800)) {
+	inctemp =  (temp & 0xfff000) >> 12;
+	inctempold = increments[0] & 0x0fff;
+
+	if ((int)(inctemp - inctempold) < -2048) {
+		Debug.println("ueberlauf+");
 		increments[0] += 0x1000;
+	}
+
+	if ((int)(inctemp - inctempold) > 2048) {
+		Debug.println("ueberlauf-");
+		increments[0] -= 0x1000;
 	}
 
 	increments[0] &= 0xfffff000;
