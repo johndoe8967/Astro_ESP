@@ -201,6 +201,18 @@ void initSPI(unsigned int time) {
 	procTimer.initializeMs(loopTime, loop).start();
 }
 
+//mDNS using ESP8266 SDK functions
+void startmDNS() {
+    struct mdns_info *info = (struct mdns_info *)os_zalloc(sizeof(struct mdns_info));
+    info->host_name = (char *) "fluke"; // You can replace test with your own host name
+    info->ipAddr = WifiStation.getIP();
+    info->server_name = (char *) "http";
+    info->server_port = 80;
+    info->txt_data[0] = (char *) "path=/";
+    espconn_mdns_init(info);
+}
+
+
 /***************************************************************
  * Connection established
  * 	start services
@@ -211,6 +223,7 @@ void connectOk()
 	telnet.listen(23);
 	enableDebug.initCommand();
 	initSPI(20);
+	startmDNS();
 }
 
 /***************************************************************
@@ -243,9 +256,12 @@ void init()
 	Debug.start();
 
 	WifiStation.enable(true);
-	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
-//	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
-	WifiAccessPoint.enable(false);
+//	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
+	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
+	WifiStation.setHostname("Astro");
+
+	WifiAccessPoint.config("astro","nomie",AUTH_OPEN,false);
+	WifiAccessPoint.enable(true);
 
 	commandHandler.registerSystemCommands();
 
