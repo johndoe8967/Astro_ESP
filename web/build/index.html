@@ -32,13 +32,17 @@
 		writeToScreen("CONNECTED");
 		doSend("Sming love WebSockets");
 		var connectbtn = document.getElementById("connect");
-		connectbtn.disabled = false;
+		connectbtn.disabled = true;
+		var disconnect = document.getElementById("disconnect");
+		disconnect.disabled = false;
 	}
 
 	function onClose(evt) {
 		writeToScreen("DISCONNECTED");
 		var connectbtn = document.getElementById("connect");
-		connectbtn.disabled = true;
+		connectbtn.disabled = false;
+		var disconnect = document.getElementById("disconnect");
+		disconnect.disabled = true;		
 	}
 
 	function onMessage(evt) {
@@ -69,8 +73,6 @@
 	}
 
 	function doDisconnect() {
-		var disconnect = document.getElementById("disconnect");
-		disconnect.disabled = true;
 		websocket.close();
 	}
 	function sendBytes() {
@@ -114,19 +116,25 @@
 	}
 	function calcPos(myInput) {
 		if (myInput.id == "incr0") {
+			var temp = myInput.value / 2000 * 2 / 67 * 360;
 			var valuefield = document.getElementById("Azi");
-			valuefield.value = myInput.value / 2000 * 2 / 67 * 360;					
+			valuefield.value = temp; 					
+			var valuefield = document.getElementById("Azi1");
+			valuefield.value = temp; 					
 		}
 		if (myInput.id == "incr1") {
+			var temp = HoursMinutesSeconds(myInput.value / (4*12) / 250 * 20 / 80 * 24);
 			var valuefield = document.getElementById("Hour");
-			valuefield.value = HoursMinutesSeconds(myInput.value / (4*12) / 250 * 20 / 80 * 24);					
+			valuefield.value = temp;
+			var valuefield = document.getElementById("Hour1");
+			valuefield.value = temp;
 		}
-		if (myInput.id == "Azi") {
+		if ((myInput.id == "Azi") || (myInput.id == "Azi1")){
 			var valuefield = document.getElementById("target0");
 			valuefield.value = myInput.value * 2000 / 2 * 67 / 360;
 			
 		}
-		if (myInput.id == "Hour") {
+		if ((myInput.id == "Hour") || (myInput.id == "Hour1")){
 			var valuefield = document.getElementById("target1");
 			var d = new Date("1970-01-01T" + myInput.value + "Z");
 			valuefield.value = d.getTime()/1000/86400 * (4*12) * 350 / 20 * 80;
@@ -214,7 +222,7 @@ input[type="range"]:before {left:0em; content: attr(min);}input[type="range"]:af
 </td>
 <td>
 	<label>SPI Out: </label> <input class="form-control" type="string"
-		id="outbytes" name="outbytes" size="50" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
+		id="SPIOUT" name="outbytes" size="50" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 		onchange="sendValue(this); calcPos(this);">
 	<br>
 	<label>SPI In: </label> <input class="form-control" type="string"
@@ -312,6 +320,29 @@ Card 2
 		onchange="sendWIFI()">
 </td></tr>
 </table></div></td></tr>
+
+<tr>
+<td width=1><input type=submit onclick="ShowHideEvent( 'Astro' );" value="Astro"></td>
+<tr>
+<td><div id=Astro class="collapsible">
+<table width=100% border=1>
+<td width=22%>
+  <fieldset>
+
+    <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
+    <label for="ref"> Referenz</label><br> 
+    <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
+    <label for="star"> Sternzeit</label><br> 
+    <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
+    <label for="move"> Positionieren</label><br> 
+  </fieldset>
+</td>
+<td>
+	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
+	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour1" size="10" value="0" onchange="calcPos(this)">
+
+</td></tr></table></div></td></tr>
+
 </table>
 
 <div id="output"></div>
