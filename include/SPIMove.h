@@ -23,14 +23,14 @@ public:
 	unsigned char* getSPIBuffer() {calcSPIOutBuffer(); return bytes;};
 
 
-	long getPos(unsigned char ch) { if (ch<2) { return increments[ch]+offset[ch]; } else return 0;};
-	void setPWM(unsigned char ch, char pwm) { if (ch<2) { motor_pwm[ch] = pwm;}};
+	long getPos(unsigned char ch) { if (ch<NUM_CHANNELS) { return increments[ch]+offset[ch]; } else return 0;};
+	void setPWM(unsigned char ch, char pwm) { if (ch<NUM_CHANNELS) { motor_pwm[ch] = pwm;}};
 	void setLED(unsigned char ch) { if(ch<4) { LEDs |= 1<<ch;}};
 	void clrLED(unsigned char ch) { if(ch<4) { LEDs &= ~(1<<ch);}};
 	void posControlEnable(bool en) { posControlLoopEnabled=en;}
-	void setPosition(unsigned char ch, long pos) { targetPos[ch] = pos;};
-	void setPControl(unsigned char ch, float setP) { if (setP>0) {P[ch]=setP;}};
-	void setReference(unsigned char ch, int ref) {offset[ch] = ref;};
+	void setPosition(unsigned char ch, long pos) { if (ch<NUM_CHANNELS) {targetPos[ch] = pos;}};
+	void setPControl(unsigned char ch, float setP) { if ((ch<NUM_CHANNELS)&&(setP>0)) {P[ch]=setP;}};
+	void setReference(unsigned char ch) {if(ch<NUM_CHANNELS) { offset[ch] = targetPos[ch]; }};
 
 
 private:
