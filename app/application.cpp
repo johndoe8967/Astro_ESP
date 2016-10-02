@@ -8,6 +8,7 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 */
 
 #include <user_config.h>
+#include "application.h"
 #include <SmingCore/SmingCore.h>
 #include <SmingCore/Network/TelnetServer.h>
 #include <string.h>
@@ -21,7 +22,6 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 //#define debug
 //#define SerialDebug
 
-
 // If you want, you can define WiFi settings globally in Eclipse Environment Variables
 #ifndef WIFI_SSID_Daheim
 	#define WIFI_SSID_Daheim "daham2" // Put you SSID and Password here
@@ -31,14 +31,6 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #define WIFI_SSID2 "un3erwegs"
 #define WIFI_PWD2 "moon2Light"
 #endif
-
-#define SPI_MISO 3	/* Master In Slave Out */
-#define SPI_MOSI 1	/* Master Out Slave In */
-#define SPI_CLK  0	/* Serial Clock */
-#define SPI_CS  2	/* Slave Select */
-#define SPI_DELAY 10	/* Clock Delay */
-#define SPI_BYTE_DELAY 10 /* Delay between Bytes */
-
 
 Timer procTimer;			// cyclic Timer processing SPI loop and devices
 unsigned int loopTime;
@@ -55,6 +47,8 @@ unsigned char usePoti;
 // debug output instead of UART
 TelnetServer telnet;
 EnableDebug enableDebug;	// enable debug output command
+MODES mode = move;
+MODES oldMode;
 
 unsigned char enableBytesOut=0;
 unsigned char bytes[11];	// bytes received through websocket
@@ -67,10 +61,66 @@ unsigned char *pBuffer, *pSource;
  * 	debug mode without SPI device classes (only byte array IO)
  *
  */
+char delayCount;
 void loop() {
 
 	// copy out data from devices to SPI buffer
 	// inverse order of chain
+
+	switch (mode) {
+	case move:
+		myDDS->setMagnet();
+		break;
+	case ref:
+		myDDS->clrMagnet();
+		myMove->setReference(0);
+		myMove->setReference(1);
+
+		if (myDDS->getDI(0) || myDDS->getDI(1)) {
+			oldMode = mode;
+			mode = potiMag;
+		}
+		break;
+	case star:
+		myDDS->clrMagnet();
+
+		if (myDDS->getDI(0) || myDDS->getDI(1)) {
+			oldMode = mode;
+			mode = potiMag;
+		}
+		break;
+
+	case potiMag:
+		myDDS->setMagnet();
+		if (myDDS->getDI(0) || myDDS->getDI(1)) {
+			delayCount++;
+		} else delayCount=0;
+		if (delayCount == 10) {
+			delayCount = 0;
+			mode = potiMove;
+		}
+		break;
+	case potiMove:
+		if (myDDS->getDI(0)) {
+			myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
+		} else if (myDDS->getDI(0)) {
+			myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
+		} else {
+			myMove->setPWM(0,0);
+			myMove->setPWM(1,0);
+			delayCount++;
+		}
+		if (delayCount == 10) {
+			delayCount = 0;
+			mode = oldMode;
+		}
+		break;
+	default:
+		break;
+	}
+
+
+
 
 	if (enableBytesOut) {
 		memcpy(SPI_Buffer, bytes, sizeof(SPI_Buffer));
@@ -106,6 +156,9 @@ void loop() {
 		Debug.printf("\r\n");
 	}
 
+	if (sendIndicator) {
+		sendSPIData(false, SPI_Buffer);
+	}
 
 	// transmit SPI_Buffer
 	delayMicroseconds(SPI_DELAY);
@@ -125,7 +178,13 @@ void loop() {
 	}
 
 	if (sendIndicator) {
-		sendSPIData(SPI_Buffer);
+		sendSPIData(true, SPI_Buffer);
+	}
+
+
+	if (usePoti) {
+		myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
+		myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
 	}
 
 	pBuffer = SPI_Buffer;
@@ -141,10 +200,6 @@ void loop() {
 	myMove->setSPIInBuffer(pBuffer);
 	pBuffer += myMove->getSPIBufferLen();
 
-	if (usePoti) {
-		myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
-		myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
-	}
 
 	if (sendIndicator) {
 		ltoa(myMove->getPos(0),value_msg,10);
@@ -204,7 +259,7 @@ void initSPI(unsigned int time) {
 //mDNS using ESP8266 SDK functions
 void startmDNS() {
     struct mdns_info *info = (struct mdns_info *)os_zalloc(sizeof(struct mdns_info));
-    info->host_name = (char *) "fluke"; // You can replace test with your own host name
+    info->host_name = (char *) "astro"; // You can replace test with your own host name
     info->ipAddr = WifiStation.getIP();
     info->server_name = (char *) "http";
     info->server_port = 80;
