@@ -19,7 +19,17 @@ void EnableDebug::initCommand()
 {
 	commandHandler.registerCommand(CommandDelegate("enDebug","Enable Debug Command from Class","Application",commandFunctionDelegate(&EnableDebug::processEnableDebug,this)));
 	commandHandler.registerCommand(CommandDelegate("startSPI","Start SPI","Application",commandFunctionDelegate(&EnableDebug::processStartSPI,this)));
+	commandHandler.registerCommand(CommandDelegate("showIP","Show IP Address","Application",commandFunctionDelegate(&EnableDebug::showIP,this)));
 }
+
+
+void EnableDebug::showIP(String commandLine, CommandOutput* commandOutput) {
+	commandOutput->printf("Start SPI\r\n");
+	String IP = WifiStation.getIP().toString();
+	commandOutput->printf(IP.c_str());
+	commandOutput->printf("\r\n");
+}
+
 void EnableDebug::processStartSPI(String commandLine, CommandOutput* commandOutput)
 {
 	Vector<String> commandToken;

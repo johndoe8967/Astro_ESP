@@ -25,6 +25,7 @@ private:
 	bool status = true;
 	void processEnableDebug(String commandLine, CommandOutput* commandOutput);
 	void processStartSPI(String commandLine, CommandOutput* commandOutput);
+	void showIP(String commandLine, CommandOutput* commandOutput);
 };
 
 
