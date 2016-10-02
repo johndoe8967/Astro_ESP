@@ -3,16 +3,27 @@
 <head>
 <title>Astro SPI WebSocket</title>
 <script language="javascript" type="text/javascript" src=jquery-2.1.4.min.js></script>
+<script language="javascript" type="text/javascript" src=sidClock.js></script>
 <script language="javascript" type="text/javascript">
 	var output;
 
 	function init() {
 		output = document.getElementById("output");
+		var d = new Date();
+		document.getElementById("UTC").defaultValue = d.toISOString(); 
 		testWebSocket();
+		JSClock();
 	}
+
+	function JSClock()
+	{
+	  calculate();
+	  var id=setTimeout("JSClock()",1000);
+	}   
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
+//		var wsUri = "ws://192.168.0.18/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -49,8 +60,15 @@
 		var msg = JSON.parse(evt.data);
 		switch (msg.type) {
 		case "JSON":
+			if (msg.msg == "UTC") {
+				var d = new Date(msg.value*1000);
+				msg.value = d.toUTCString();
+			}
 			var valuefield = document.getElementById(msg.msg);
-			valuefield.value = msg.value;
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = msg.value;				
+			} else {
+			}
 			calcPos(valuefield);
 			break;
 		}
@@ -101,6 +119,15 @@
 		};
 		websocket.send(JSON.stringify(message));
 	}
+	function sendTime(myValue) {
+		var d = new Date(myValue.value);
+		var message = {
+				type : "JSON",
+				msg : myValue.name,
+				value : d.getTime()/1000
+			};
+			websocket.send(JSON.stringify(message));		
+	}
 	
 	function handleClick(myClickable) {
 		var sign = -1;
@@ -139,35 +166,6 @@
 			var d = new Date("1970-01-01T" + myInput.value + "Z");
 			valuefield.value = d.getTime()/1000/86400 * (4*12) * 350 / 20 * 80;
 		}
-	}
-
-	function HoursMinutesSeconds(time) {
-		var h = Math.floor(time);
-		var min = Math.floor(60.0 * frac(time));
-		var secs = Math.round(60.0 * (60.0 * frac(time) - min));
-
-		var str;
-		if (h < 10)
-			str = "0"+h;
-		else 
-			str = h;
-		if (min >= 10)
-			str = str + ":" + min;
-		else
-			str = str + ":0" + min;
-		//if (min==60) str=(h+1)+":00";
-		if (secs < 10)
-			str = str + ":0" + secs;
-		else
-			str = str + ":" + secs;
-		return str;
-	}	
-
-	function frac(X) {
-		X = X - Math.floor(X);
-		if (X < 0)
-			X = X + 1.0;
-		return X;
 	}
 
 	function ShowHideEvent( objname )
@@ -259,10 +257,10 @@ Card 2
 <td>
 	<label>Motor 1: </label> <input class="form-control" type="number"
 		id="mot1" name="motor1" size="3" value="0"
-		onchange="sendValue(this); calcPos(this);">
+		onchange="sendValue(this);">
 	<label>Motor 2: </label> <input class="form-control" type="number"
 		id="mot1" name="motor2" size="3" value="0"
-		onchange="sendValue(this); calcPos(this);">
+		onchange="sendValue(this);">
 		
 	<label>Motor Leds</label>
 	<input type="checkbox" name="MOTLED" value="1" onclick="handleClick(this);">
@@ -286,29 +284,28 @@ Card 2
 	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi" size="10" value="0" onchange="calcPos(this)">
 	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour" size="10" value="0" onchange="calcPos(this)">
 	<br>
-	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this); calcPos(this);">
-	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this); calcPos(this);">		
+	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this);">
+	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this);">		
 	<br>
 	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
 	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
 	<br>
-	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="1" onchange="sendValue(this); calcPos(this);">
+	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="1" onchange="sendValue(this);">
 </td>
 </tr>
 </table></div></td></tr>
 
 <tr>
-<td width=1><input type=submit onclick="ShowHideEvent( 'WIFI' );" value="WIFI parameter"></td>
+<td width=1><input type=submit onclick="ShowHideEvent( 'PARAM' );" value="Parameters"></td>
 <tr>
-<td><div id=WIFI class="collapsible">
+<td><div id=PARAM class="collapsible">
 <table width=100% border=1>
 <td width=22%>
 	<label>SSID: </label> 
 </td>
 <td>
 	<input class="form-control" type="text"
-		id="ssid" name="ssid" size="20" value=""
-		onchange="sendValue(this); calcPos(this);">
+		id="ssid" name="ssid" size="26" value="">
 </td></tr>
 <tr>
 <td width=22%>
@@ -316,8 +313,25 @@ Card 2
 </td>
 <td>
 	<input class="form-control" type="text"
-		id="wifipwd" name="wifipwd" size="20" value=""
+		id="wifipwd" name="wifipwd" size="26" value=""
 		onchange="sendWIFI()">
+</td></tr>
+<tr>
+<td width=22%>
+	<label>Time: </label> 
+</td>
+<td>
+	<input class="form-control" type="datetime-local"
+		id="UTC" name="UTC" value="" size="26"
+		onchange="sendTime(this);">
+</td></tr>
+<tr>
+<td width=22%>
+	<label>Longitude: </label> 
+</td>
+<td>
+	<input class="form-control" type="datetime-local"
+		id="longitude" name="longitude" value="14.2354" size="26">
 </td></tr>
 </table></div></td></tr>
 
@@ -340,6 +354,8 @@ Card 2
 <td>
 	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
 	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour1" size="10" value="0" onchange="calcPos(this)">
+	<label>Sternzeit:</label> <input class="form-control" type="time" id="startime" size="10" value="0">
+	
 
 </td></tr></table></div></td></tr>
 
