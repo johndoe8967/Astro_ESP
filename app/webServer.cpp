@@ -12,13 +12,20 @@ int totalActiveSockets = 0;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
-void sendSPIData(unsigned char bytes[11]) {
+void sendSPIData(bool in, unsigned char bytes[11]) {
 	String outData;
 	for (char i=0; i<11; i++) {
 		outData += String(bytes[i],16);
 		outData += ',';
 	}
-	String message = "{\"type\": \"JSON\",\"msg\": \"SPIIN\", \"value\": \"" + outData + "\"}";
+	String message = "{\"type\": \"JSON\",\"msg\": ";
+	if (in) {
+		message +=  "\"SPIIN\"";
+	}
+	else {
+		message +=  "\"SPIOUT\"";
+	}
+	message +=  ", \"value\": \"" + outData + "\"}";
 
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
@@ -61,6 +68,16 @@ void wsConnected(WebSocket& socket)
 	totalActiveSockets++;
 }
 
+/***************************************************************
+ * Connection established
+ * 	start services
+ */
+void newConnectOk()
+{
+	String IP = WifiStation.getIP().toString();
+	Debug.println(IP);
+}
+
 void wsMessageReceived(WebSocket& socket, const String& message)
 {
 	debugf("WebSocket message received:\r\n%s\r\n", message.c_str());
@@ -85,6 +102,11 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 				buffer = end + 1;
 			}
 		}
+		if (value==String("mode")) {
+			int temp = root["value"];
+			mode = (MODES)temp;
+		}
+
 		if (value==String("enableDebug")) {
 			enableBytesOut = root["value"];
 		}
@@ -170,6 +192,8 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 			String SSID = root["SSID"].asString();
 			String PWD = root["PWD"].asString();
 			WifiStation.config(SSID,PWD);
+			WifiStation.waitConnection(newConnectOk);
+
 		}
 	}
 }
