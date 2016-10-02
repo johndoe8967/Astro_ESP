@@ -15,8 +15,8 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #include "SPIDDS.h"
 #include "SPIMove.h"
 #include "SPIAI.h"
-
 #include "../include/EnableDebug.h"
+#include "../include/NtpClient.h"
 #include "webServer.h"
 
 //#define debug
@@ -47,6 +47,10 @@ unsigned char usePoti;
 // debug output instead of UART
 TelnetServer telnet;
 EnableDebug enableDebug;	// enable debug output command
+
+// Callback example using defined class ntpClientDemo
+ntpClient *ntp;
+
 MODES mode = move;
 MODES oldMode;
 
@@ -210,6 +214,8 @@ void loop() {
 		sendMessage("AI0",value_msg);
 		ltoa(myAI->getAI(1),value_msg,10);
 		sendMessage("AI1",value_msg);
+		ltoa(SystemClock.now(),value_msg,10);
+		sendMessage("UTC",value_msg);
 	}
 }
 
@@ -279,6 +285,7 @@ void connectOk()
 	enableDebug.initCommand();
 	initSPI(20);
 	startmDNS();
+	ntp = new ntpClient();
 }
 
 /***************************************************************

@@ -193,7 +193,10 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 			String PWD = root["PWD"].asString();
 			WifiStation.config(SSID,PWD);
 			WifiStation.waitConnection(newConnectOk);
-
+		}
+		if (value==String("UTC")) {
+			time_t UTC = root["value"];
+			SystemClock.setTime(UTC,eTZ_UTC);
 		}
 	}
 }
