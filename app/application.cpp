@@ -59,6 +59,30 @@ unsigned char bytes[11];	// bytes received through websocket
 unsigned char SPI_Buffer[11] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 unsigned char *pBuffer, *pSource;
 
+
+// delay by number of repeats
+char delayCount;
+inline void resetDelay() {
+	delayCount = 0;
+}
+bool delayedTransition(char delay) {
+	if (delayCount++ == delay) {
+		resetDelay();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+MODES checkManualMove(MODES actmode) {
+	if (myDDS->getDI(0) || myDDS->getDI(1)) {
+		oldMode = actmode;
+		actmode = potiMag;
+		resetDelay();
+	}
+	return actmode;
+}
+
 void setMode(MODES newMode) {
 	if ((newMode == move) || (newMode == ref) || (newMode==star)) {
 		mode = newMode;
@@ -74,72 +98,80 @@ void setMode(MODES newMode) {
  * 	debug mode without SPI device classes (only byte array IO)
  *
  */
-char delayCount;
-void loop() {
+#define magOnDelay 10
+#define magOffDelay 10
 
-	// copy out data from devices to SPI buffer
-	// inverse order of chain
+void loop() {
 
 	switch (mode) {
 	case move:
 		myDDS->setMagnet();
+		if (delayedTransition(magOnDelay)) {
+			myMove->posControlEnable(1);
+			mode = moving;
+		}
 		break;
+	case moving:
+		break;
+
 	case ref:
-		myDDS->clrMagnet();
+		myMove->posControlEnable(0);
+		if (delayedTransition(magOffDelay)) {
+			myDDS->clrMagnet();
+			mode = refing;
+		}
+		break;
+	case refing:
 		myMove->setReference(0);
 		myMove->setReference(1);
 
-		if (myDDS->getDI(0) || myDDS->getDI(1)) {
-			oldMode = mode;
-			mode = potiMag;
-		}
+		mode = checkManualMove(mode);
 		break;
 	case star:
-		myDDS->clrMagnet();
-
-		if (myDDS->getDI(0) || myDDS->getDI(1)) {
-			oldMode = mode;
-			mode = potiMag;
+		myMove->posControlEnable(0);
+		if (delayedTransition(magOffDelay)) {
+			myDDS->clrMagnet();
+			mode = staring;
 		}
+		break;
+	case staring:
+		mode = checkManualMove(mode);
 		break;
 
 	case potiMag:
 		myDDS->setMagnet();
-		if (myDDS->getDI(0) || myDDS->getDI(1)) {
-			delayCount++;
-		} else delayCount=0;
-		if (delayCount == 10) {
-			delayCount = 0;
+		if (delayedTransition(magOnDelay)) {
 			mode = potiMove;
 		}
 		break;
 	case potiMove:
 		if (myDDS->getDI(0)) {
 			myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
+			resetDelay();
 		} else if (myDDS->getDI(0)) {
 			myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
+			resetDelay();
 		} else {
 			myMove->setPWM(0,0);
 			myMove->setPWM(1,0);
-			delayCount++;
-		}
-		if (delayCount == 10) {
-			delayCount = 0;
-			mode = oldMode;
+
+			if (delayedTransition(magOffDelay)) {
+				mode = (MODES)(oldMode%10);
+			}
 		}
 		break;
 	default:
 		break;
 	}
 
-
-
-
 	if (enableBytesOut) {
+		// copy debug data to SPI buffer
 		memcpy(SPI_Buffer, bytes, sizeof(SPI_Buffer));
 	}else {
+
 		pBuffer = SPI_Buffer;
 
+		// copy out data from devices to SPI buffer
 	 	pSource = myDDS->getSPIBuffer();
 		memcpy(pBuffer, pSource, myDDS->getSPIBufferLen());
 		pBuffer += myDDS->getSPIBufferLen();
@@ -153,6 +185,7 @@ void loop() {
 		pBuffer += myMove->getSPIBufferLen();
 	}
 
+	// reduction of html and debug interface to 1s cycle time
 	reductionCounter++;
 	unsigned int reduction = 1000 / loopTime;
 	bool sendIndicator = 0;
@@ -160,6 +193,7 @@ void loop() {
 		sendIndicator = 1;
 		reductionCounter = 0;
 	}
+
 	if (enableDebug.getDebugEnabled() & sendIndicator) {
 		// show SPI Output before sending
 		Debug.printf("SPI OUT:");
@@ -194,7 +228,6 @@ void loop() {
 		sendSPIData(true, SPI_Buffer);
 	}
 
-
 	if (usePoti) {
 		myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
 		myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
@@ -202,7 +235,6 @@ void loop() {
 
 	pBuffer = SPI_Buffer;
 
-	char value_msg[10];
 	// copy received data from SPI_Buffer to devices
 	myDDS->setSPIInBuffer(pBuffer);
 	pBuffer += myDDS->getSPIBufferLen();
@@ -213,8 +245,8 @@ void loop() {
 	myMove->setSPIInBuffer(pBuffer);
 	pBuffer += myMove->getSPIBufferLen();
 
-
 	if (sendIndicator) {
+		char value_msg[10];
 		ltoa(myMove->getPos(0),value_msg,10);
 		sendMessage("incr0",value_msg);
 		ltoa(myMove->getPos(1),value_msg,10);
