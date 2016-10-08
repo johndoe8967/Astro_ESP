@@ -27,7 +27,7 @@ public:
 	void clrMagnet() {magnet = 0;};
 	void setLED(unsigned char ch) {if(ch<4) { LEDs |= 1<<ch;}};
 	void clrLED(unsigned char ch) {if(ch<4) { LEDs &= ~(1<<ch);}};
-	char getDI(unsigned char ch) {if(ch<4) { return (DI_IN & (1<<ch)) != 0;}};
+	char getDI(unsigned char ch) {if(ch<4) { return (DI_IN & (1<<ch)) == 0;}};
 
 
 private:
