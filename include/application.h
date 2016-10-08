@@ -17,6 +17,7 @@
 
 
 enum MODES {move=0, star=1, ref=2, potiMag, potiMove};
+void setMode(MODES newMode);
 
 
 #endif /* INCLUDE_APPLICATION_H_ */

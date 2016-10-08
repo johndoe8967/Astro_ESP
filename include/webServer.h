@@ -19,7 +19,6 @@ extern SPI_Move *myMove;
 extern SPI_AI   *myAI;
 extern unsigned char enableBytesOut;
 
-extern MODES mode;
 extern unsigned char usePoti;
 
 void startWebServer();

@@ -104,7 +104,7 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 		}
 		if (value==String("mode")) {
 			int temp = root["value"];
-			mode = (MODES)temp;
+			setMode((MODES)temp);
 		}
 
 		if (value==String("enableDebug")) {

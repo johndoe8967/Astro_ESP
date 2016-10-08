@@ -59,6 +59,15 @@ unsigned char bytes[11];	// bytes received through websocket
 unsigned char SPI_Buffer[11] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 unsigned char *pBuffer, *pSource;
 
+void setMode(MODES newMode) {
+	if ((newMode == move) || (newMode == ref) || (newMode==star)) {
+		mode = newMode;
+		resetDelay();
+	}
+}
+
+
+
 // cyclic loop
 /***************************************************************
  * cyclic loop / main task
