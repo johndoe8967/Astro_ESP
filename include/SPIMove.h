@@ -30,7 +30,7 @@ public:
 	void posControlEnable(bool en) { posControlLoopEnabled=en;}
 	void setPosition(unsigned char ch, long pos) { if (ch<NUM_CHANNELS) {targetPos[ch] = pos;}};
 	void setPControl(unsigned char ch, float setP) { if ((ch<NUM_CHANNELS)&&(setP>0)) {P[ch]=setP;}};
-	void setReference(unsigned char ch) {if(ch<NUM_CHANNELS) { offset[ch] = targetPos[ch]; }};
+	void setReference(unsigned char ch) {if(ch<NUM_CHANNELS) { offset[ch] = targetPos[ch]-increments[ch]; }};
 
 
 private:
@@ -42,7 +42,7 @@ private:
 	unsigned char *bytes;
 	long targetPos[NUM_CHANNELS];
 	long increments[NUM_CHANNELS];
-	int offset[NUM_CHANNELS];
+	long offset[NUM_CHANNELS];
 
 	char motor_pwm[NUM_CHANNELS];
 	char LEDs;
