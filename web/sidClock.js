@@ -35,6 +35,7 @@ function daysInMonth(m, y) {
 function calculate() {
 	var LMST = document.getElementById("startime");
 	var long = document.getElementById("longitude");
+	var position = document.getElementById("incr1");
 	var dat1 = new Date();
 	seconds = dat1.getUTCSeconds();
 	minutes = dat1.getUTCMinutes();
@@ -47,7 +48,9 @@ function calculate() {
 	
 	longit = long.value;
 	
-	LMST.value = LM_Sidereal_Time(JulDay (day, month, year, UT),longit);
+	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
+	
+	LMST.value = HoursMinutesSeconds(positiontime - LM_Sidereal_Time(JulDay (day, month, year, UT),longit));
 }
 
 function JulDay (d, m, y, u){
@@ -71,7 +74,7 @@ function GM_Sidereal_Time (jd) {
 function LM_Sidereal_Time (jd, longitude) {
 	var GMST = GM_Sidereal_Time(jd);			
 	var LMST =  24.0*frac((GMST + longitude/15.0)/24.0);
-	return HoursMinutesSeconds(LMST);
+	return LMST;
 }
 
 function frac(X) {

@@ -67,7 +67,6 @@
 			var valuefield = document.getElementById(msg.msg);
 			if (!(valuefield === document.activeElement)) {
 				valuefield.value = msg.value;				
-			} else {
 			}
 			calcPos(valuefield);
 			break;
@@ -145,26 +144,39 @@
 		if (myInput.id == "incr0") {
 			var temp = myInput.value / 2000 * 2 / 67 * 360;
 			var valuefield = document.getElementById("Azi");
-			valuefield.value = temp; 					
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = temp;
+			}
 			var valuefield = document.getElementById("Azi1");
-			valuefield.value = temp; 					
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = temp;
+			}
 		}
 		if (myInput.id == "incr1") {
 			var temp = HoursMinutesSeconds(myInput.value / (4*12) / 250 * 20 / 80 * 24);
 			var valuefield = document.getElementById("Hour");
-			valuefield.value = temp;
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = temp;
+			}
 			var valuefield = document.getElementById("Hour1");
-			valuefield.value = temp;
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = temp;
+			}
 		}
 		if ((myInput.id == "Azi") || (myInput.id == "Azi1")){
 			var valuefield = document.getElementById("target0");
-			valuefield.value = myInput.value * 2000 / 2 * 67 / 360;
-			
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = myInput.value * 2000 / 2 * 67 / 360;
+				sendValue(valuefield);
+			}
 		}
 		if ((myInput.id == "Hour") || (myInput.id == "Hour1")){
 			var valuefield = document.getElementById("target1");
 			var d = new Date("1970-01-01T" + myInput.value + "Z");
-			valuefield.value = d.getTime()/1000/86400 * (4*12) * 350 / 20 * 80;
+			if (!(valuefield === document.activeElement)) {
+				valuefield.value = d.getTime()/1000/86400 * (4*12) * 250 / 20 * 80;
+				sendValue(valuefield);
+			}
 		}
 	}
 
