@@ -3,14 +3,19 @@ var lat, longit, offset, locOffset;
 var hours, utHours, minutes, seconds, day, utDay, month, utMonth, year, utYear;
 
 function HoursMinutesSeconds(time) {
+	var sign = 1;
+	if (time<0) {
+		time = -time;
+		sign = -1;
+	}
 	var h = Math.floor(time);
 	var min = Math.floor(60.0 * frac(time));
 	var secs = Math.round(60.0 * (60.0 * frac(time) - min));
 
 	var str="";
-	if (h < 0) { str = "-"; h=-h;}
+	if (sign == -1) {str = "-"};
 	if (h < 10) str = str + "0"+h;
-	else  str = h;
+	else  str = str + h;
 	if (min >= 10) str = str + ":" + min;
 	else str = str + ":0" + min;
 	if (secs < 10) str = str + ":0" + secs;
@@ -32,10 +37,8 @@ function daysInMonth(m, y) {
 	dIM=n;
 }
 
-function calculate() {
-	var LMST = document.getElementById("startime");
+function calcLMST() {
 	var long = document.getElementById("longitude");
-	var position = document.getElementById("incr1");
 	var dat1 = new Date();
 	seconds = dat1.getUTCSeconds();
 	minutes = dat1.getUTCMinutes();
@@ -48,9 +51,27 @@ function calculate() {
 	
 	longit = long.value;
 	
-	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
+	return LM_Sidereal_Time(JulDay (day, month, year, UT),longit);
+}
+
+function calculate() {
+	var LMST = document.getElementById("startime");
+	var position = document.getElementById("incr1");
 	
-	LMST.value = HoursMinutesSeconds(positiontime - LM_Sidereal_Time(JulDay (day, month, year, UT),longit));
+	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
+	if (!(LMST === document.activeElement)) {
+		LMST.value = HoursMinutesSeconds(positiontime - calcLMST());
+	}
+}
+
+function setLMST() {
+	var LMST = document.getElementById("startime");
+	var hourfield = document.getElementById("Hour1");
+	
+	var d = new Date("1970-01-01T" + LMST.value.slice(1) + "Z");
+	var hour= -d.getTime()/1000/3600; //- d.getTimezoneOffset()/60;
+	hourfield.value = HoursMinutesSeconds(hour + calcLMST());
+	calcPos(hourfield);
 }
 
 function JulDay (d, m, y, u){

@@ -24,6 +24,7 @@
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
 //		var wsUri = "ws://192.168.0.18/";
+//		var wsUri = "ws://10.0.0.220/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -172,9 +173,17 @@
 		}
 		if ((myInput.id == "Hour") || (myInput.id == "Hour1")){
 			var valuefield = document.getElementById("target1");
-			var d = new Date("1970-01-01T" + myInput.value + "Z");
+			var timevar;
+			if (myInput.value.slice(0,1)=="-") {
+				var d = new Date("1970-01-01T" + myInput.value.slice(1) + "Z");
+				var c = new Date("1970-01-01T00:00:00Z")
+				timevar = c - d;
+			} else {
+				var d = new Date("1970-01-01T" + myInput.value + "Z");
+				timevar = d.getTime();
+			}
 			if (!(valuefield === document.activeElement)) {
-				valuefield.value = d.getTime()/1000/86400 * (4*12) * 250 / 20 * 80;
+				valuefield.value = timevar/1000/86400 * (4*12) * 250 / 20 * 80;
 				sendValue(valuefield);
 			}
 		}
@@ -366,7 +375,7 @@ Card 2
 <td>
 	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
 	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour1" size="10" value="0" onchange="calcPos(this)">
-	<label>Sternzeit:</label> <input class="form-control" type="time" id="startime" size="10" value="0">
+	<label>Sternzeit:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()">
 	
 
 </td></tr></table></div></td></tr>
