@@ -116,6 +116,8 @@ void loop() {
 
 	case ref:
 		myMove->posControlEnable(0);
+		myMove->setPWM(0,0);
+		myMove->setPWM(1,0);
 		if (delayedTransition(magOffDelay)) {
 			myDDS->clrMagnet();
 			mode = refing;
@@ -148,7 +150,7 @@ void loop() {
 		if (myDDS->getDI(0)) {
 			myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
 			resetDelay();
-		} else if (myDDS->getDI(0)) {
+		} else if (myDDS->getDI(1)) {
 			myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
 			resetDelay();
 		} else {

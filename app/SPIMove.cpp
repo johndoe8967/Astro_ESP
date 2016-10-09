@@ -74,9 +74,6 @@ void SPI_Move::calcSPIOutBuffer() {
 	if (posControlLoopEnabled) {
 		calcControlLoop(0);
 		calcControlLoop(1);
-	} else {
-		motor_pwm[0] = 0;
-		motor_pwm[1] = 0;
 	}
 	if (motor_pwm[0] <= 0x80) {
 		bytes[2] = 0x80 - motor_pwm[0];
