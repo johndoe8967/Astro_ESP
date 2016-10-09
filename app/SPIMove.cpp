@@ -90,7 +90,7 @@ void SPI_Move::calcSPIOutBuffer() {
 }
 
 void SPI_Move::calcControlLoop(unsigned char ch) {
-	long error = targetPos[ch] - increments[ch];
+	long error = targetPos[ch] - this->getPos(ch);
 	float control =  (float)error * P[ch];
 	if (control > 127) control = 127;
 	if (control <-127) control = -127;
