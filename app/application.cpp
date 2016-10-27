@@ -248,17 +248,7 @@ void loop() {
 	pBuffer += myMove->getSPIBufferLen();
 
 	if (sendIndicator) {
-		char value_msg[10];
-		ltoa(myMove->getPos(0),value_msg,10);
-		sendMessage("incr0",value_msg);
-		ltoa(myMove->getPos(1),value_msg,10);
-		sendMessage("incr1",value_msg);
-		ltoa(myAI->getAI(0),value_msg,10);
-		sendMessage("AI0",value_msg);
-		ltoa(myAI->getAI(1),value_msg,10);
-		sendMessage("AI1",value_msg);
-		ltoa(SystemClock.now(),value_msg,10);
-		sendMessage("UTC",value_msg);
+		sendActData();
 	}
 }
 

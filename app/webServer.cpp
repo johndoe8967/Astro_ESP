@@ -9,6 +9,8 @@
 #include <Debug.h>
 HttpServer server;
 int totalActiveSockets = 0;
+bool manualOpen=false;
+bool paramOpen=false;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
@@ -39,6 +41,25 @@ void sendMessage(const char *msg, const char *value) {
 		clients[i].sendString(message);
 }
 
+void sendActData() {
+	char value_msg[10];
+	ltoa(myMove->getPos(0),value_msg,10);
+	sendMessage("incr0",value_msg);
+	ltoa(myMove->getPos(1),value_msg,10);
+	sendMessage("incr1",value_msg);
+
+	if (manualOpen) {
+		ltoa(myAI->getAI(0),value_msg,10);
+		sendMessage("AI0",value_msg);
+		ltoa(myAI->getAI(1),value_msg,10);
+		sendMessage("AI1",value_msg);
+	}
+	if (paramOpen) {
+		ltoa(SystemClock.now(),value_msg,10);
+		sendMessage("UTC",value_msg);
+	}
+
+}
 
 void onIndex(HttpRequest &request, HttpResponse &response)
 {
@@ -198,12 +219,17 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 			time_t UTC = root["value"];
 			SystemClock.setTime(UTC,eTZ_UTC);
 		}
+		if (value==String("PARAM")) {
+			paramOpen = root["value"];
+		}
+		if (value==String("manuell")) {
+			manualOpen = root["value"];
+		}
 	}
 }
 
 void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 {
-	Serial.printf("Websocket binary data recieved, size: %d\r\n", size);
 }
 
 void wsDisconnected(WebSocket& socket)
