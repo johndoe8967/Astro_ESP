@@ -24,6 +24,7 @@ extern unsigned char usePoti;
 void startWebServer();
 void sendSPIData(bool in, unsigned char bytes[11]);
 void sendMessage(const char *msg, const char *value);
+void sendActData();
 
 
 #endif /* INCLUDE_WEBSERVER_H_ */
