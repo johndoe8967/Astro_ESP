@@ -13,7 +13,7 @@ public:
 	void ntpResult(NtpClient& client, time_t ntpTime)
 	{
 		SystemClock.setTime(ntpTime, eTZ_UTC);
-		Debug.print("ntpClientDemo Callback Time_t = ");
+		Debug.print("Time_t = ");
 		Debug.print(ntpTime);
 		Debug.print(" Time = ");
 		Debug.println(SystemClock.getSystemTimeString());

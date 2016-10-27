@@ -96,14 +96,10 @@ void wsConnected(WebSocket& socket)
 void newConnectOk()
 {
 	String IP = WifiStation.getIP().toString();
-	Debug.println(IP);
 }
 
 void wsMessageReceived(WebSocket& socket, const String& message)
 {
-	debugf("WebSocket message received:\r\n%s\r\n", message.c_str());
-//	String response = "Echo: " + message;
-//	socket.sendString(response);
 	Debug.println(message);
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(message);
@@ -254,8 +250,6 @@ void startWebServer()
 	server.setWebSocketMessageHandler(wsMessageReceived);
 	server.setWebSocketBinaryHandler(wsBinaryReceived);
 	server.setWebSocketDisconnectionHandler(wsDisconnected);
-
-	Debug.printf("\r\n=== WEB SERVER STARTED ===");
 }
 
 
