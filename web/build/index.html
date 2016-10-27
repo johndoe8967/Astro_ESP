@@ -22,8 +22,8 @@
 	}   
 
 	function testWebSocket() {
-		var wsUri = "ws://" + location.host + "/";
-//		var wsUri = "ws://192.168.0.18/";
+//		var wsUri = "ws://" + location.host + "/";
+		var wsUri = "ws://192.168.0.18/";
 //		var wsUri = "ws://10.0.0.8/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
@@ -41,8 +41,7 @@
 	}
 
 	function onOpen(evt) {
-		writeToScreen("CONNECTED");
-		doSend("Sming love WebSockets");
+//		writeToScreen("CONNECTED");
 		var connectbtn = document.getElementById("connect");
 		connectbtn.disabled = true;
 		var disconnect = document.getElementById("disconnect");
@@ -50,11 +49,12 @@
 	}
 
 	function onClose(evt) {
-		writeToScreen("DISCONNECTED");
+//		writeToScreen("DISCONNECTED");
 		var connectbtn = document.getElementById("connect");
 		connectbtn.disabled = false;
 		var disconnect = document.getElementById("disconnect");
-		disconnect.disabled = true;		
+		disconnect.disabled = true;
+		testWebSocket();
 	}
 
 	function onMessage(evt) {
@@ -75,7 +75,7 @@
 	}
 
 	function onError(evt) {
-		writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+//		writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
 	}
 
 	function doSend(message) {
@@ -150,7 +150,7 @@
 			}
 			var valuefield = document.getElementById("Azi1");
 			if (!(valuefield === document.activeElement)) {
-				valuefield.value = temp;
+				valuefield.value = parseFloat(temp).toFixed(1);
 			}
 		}
 		if (myInput.id == "incr1") {
@@ -194,6 +194,12 @@
 		var obj = $( "#" + objname );
 		obj.slideToggle( 'fast' ).toggleClass( 'opened' );
 		var opened = obj.is( '.opened' );
+		var message = {
+				type : "JSON",
+				msg : objname,
+				value : opened
+			};
+		websocket.send(JSON.stringify(message));
 		localStorage["sh" + objname] = opened?1:0;
 		return opened!=0;
 	}
@@ -211,18 +217,16 @@ td { vertical-align: top; }
 input[type="range"] {position: relative;margin-left: 1em;}
 input[type="range"]:after, input[type="range"]:before {position: absolute;top: 1em;color: #aaa;}
 input[type="range"]:before {left:0em; content: attr(min);}input[type="range"]:after {right: 0em;content: attr(max);}
+Label {
+    font-size: 200%;
+}
+input{
+    font-size: 200%;
+}
 </style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-
-
-<h2>
-	SPI Test 
-	<input type="button" id="connect" onclick="testWebSocket();"
-		value="connect" title="Connect WS" disabled/>
-	<input type="button" id="disconnect" onclick="doDisconnect()"
-		value="X" title="Disconnect WS" />
-</h2>
 
 <table id="MainMenu">
 <tr>
@@ -230,21 +234,20 @@ input[type="range"]:before {left:0em; content: attr(min);}input[type="range"]:af
 <tr>
 <td><div id=Astro class="collapsible">
 <table width=100% border=1>
-<td width=22%>
+<td width=25%>
   <fieldset>
 
     <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
-    <label for="ref"> Referenz</label><br> 
+    <label for="ref"> Ref</label><br> 
     <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
-    <label for="star"> Nachf&uuml;hrung</label><br> 
+    <label for="star"> F&uuml;hren</label><br> 
     <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
-    <label for="move"> Positionieren</label><br> 
+    <label for="move"> GoTo</label>
   </fieldset>
 </td>
 <td>
-	<label>Rektaszension:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()">
-	<label>Deklination:</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
-	<br>
+	<label>Rektaszension:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()"><br>
+	<label>Deklination:</label> <input class="form-control" type="number" id="Azi1" step="1" style="width: 120px;" pattern="[0-9]*" value="0" onchange="calcPos(this)"><br>
 	<label>s&uuml;dl. Differenz:</label> <input class="form-control" type="text" id="Hour1" size="10" value="0"  disabled onchange="calcPos(this)">
 </td></tr></table></div></td></tr>
 <tr>
@@ -380,8 +383,12 @@ Card 2
 
 
 </table>
+<input type="button" id="connect" onclick="testWebSocket();"
+	value="connect" title="Connect WS" disabled />
+<input type="button" id="disconnect" onclick="doDisconnect()" value="X"
+	title="Disconnect WS" />
 
-<div id="output"></div>
+	<div id="output"></div>
 
 </body>
 </html>
