@@ -48,6 +48,8 @@ unsigned char usePoti;
 TelnetServer telnet;
 EnableDebug enableDebug;	// enable debug output command
 
+FTPServer myFtp;
+
 // Callback example using defined class ntpClientDemo
 ntpClient *ntp;
 
@@ -303,7 +305,6 @@ void startmDNS() {
     espconn_mdns_init(info);
 }
 
-
 /***************************************************************
  * Connection established
  * 	start services
@@ -315,6 +316,10 @@ void connectOk()
 	enableDebug.initCommand();
 	initSPI(20);
 	startmDNS();
+
+	myFtp.listen(21);
+	myFtp.addUser("me", "123"); // FTP account
+
 	ntp = new ntpClient();
 }
 
