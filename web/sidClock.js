@@ -45,7 +45,7 @@ function calcLMST() {
 	hours   = dat1.getHours();
 	utHours = dat1.getUTCHours();
 	day		= dat1.getUTCDate();
-	month	= dat1.getUTCMonth();
+	month	= dat1.getUTCMonth()+1;
 	year	= dat1.getUTCFullYear();
 	UT = utHours + minutes/60 + seconds/3600;
 	
@@ -60,7 +60,8 @@ function calculate() {
 	
 	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
 	if (!(LMST === document.activeElement)) {
-		LMST.value = HoursMinutesSeconds(positiontime - calcLMST());
+		var blah = HoursMinutesSeconds(calcLMST());
+		LMST.value = HoursMinutesSeconds(calcLMST()-positiontime);
 	}
 }
 
@@ -68,9 +69,9 @@ function setLMST() {
 	var LMST = document.getElementById("startime");
 	var hourfield = document.getElementById("Hour1");
 	
-	var d = new Date("1970-01-01T" + LMST.value.slice(1) + "Z");
-	var hour= -d.getTime()/1000/3600; //- d.getTimezoneOffset()/60;
-	hourfield.value = HoursMinutesSeconds(hour + calcLMST());
+	var d = new Date("1970-01-01T" + LMST.value + "Z");
+	var hour= d.getTime()/1000/3600; //- d.getTimezoneOffset()/60;
+	hourfield.value = HoursMinutesSeconds(calcLMST() - hour);
 	calcPos(hourfield);
 }
 

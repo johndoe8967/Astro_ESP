@@ -24,7 +24,7 @@
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
 //		var wsUri = "ws://192.168.0.18/";
-//		var wsUri = "ws://10.0.0.220/";
+//		var wsUri = "ws://10.0.0.8/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -225,7 +225,28 @@ input[type="range"]:before {left:0em; content: attr(min);}input[type="range"]:af
 </h2>
 
 <table id="MainMenu">
+<tr>
+<td width=1><input type=submit onclick="ShowHideEvent( 'Astro' );" value="Astro"></td>
+<tr>
+<td><div id=Astro class="collapsible">
+<table width=100% border=1>
+<td width=22%>
+  <fieldset>
 
+    <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
+    <label for="ref"> Referenz</label><br> 
+    <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
+    <label for="star"> Nachf&uuml;hrung</label><br> 
+    <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
+    <label for="move"> Positionieren</label><br> 
+  </fieldset>
+</td>
+<td>
+	<label>Rektaszension:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()">
+	<label>Deklination:</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
+	<br>
+	<label>s&uuml;dl. Differenz:</label> <input class="form-control" type="text" id="Hour1" size="10" value="0"  disabled onchange="calcPos(this)">
+</td></tr></table></div></td></tr>
 <tr>
 <td width=1><input type=submit onclick="ShowHideEvent( 'Debug' );" value="SPI Debug"></td>
 <tr>
@@ -339,11 +360,11 @@ Card 2
 </td></tr>
 <tr>
 <td width=22%>
-	<label>Time: </label> 
+	<label>UTC Time: </label> 
 </td>
 <td>
-	<input class="form-control" type="datetime-local"
-		id="UTC" name="UTC" value="" size="26"
+	<input class="form-control" type="text"
+		id="UTC" name="UTC" value="" size="29"
 		onchange="sendTime(this);">
 </td></tr>
 <tr>
@@ -351,34 +372,12 @@ Card 2
 	<label>Longitude: </label> 
 </td>
 <td>
-	<input class="form-control" type="datetime-local"
+	<input class="form-control" type="number"
 		id="longitude" name="longitude" value="14.2354" size="26">
 </td></tr>
 </table></div></td></tr>
 
-<tr>
-<td width=1><input type=submit onclick="ShowHideEvent( 'Astro' );" value="Astro"></td>
-<tr>
-<td><div id=Astro class="collapsible">
-<table width=100% border=1>
-<td width=22%>
-  <fieldset>
 
-    <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
-    <label for="ref"> Referenz</label><br> 
-    <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
-    <label for="star"> Sternzeit</label><br> 
-    <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
-    <label for="move"> Positionieren</label><br> 
-  </fieldset>
-</td>
-<td>
-	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi1" size="10" value="0" onchange="calcPos(this)">
-	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour1" size="10" value="0" onchange="calcPos(this)">
-	<label>Sternzeit:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()">
-	
-
-</td></tr></table></div></td></tr>
 
 </table>
 
