@@ -8,7 +8,6 @@
 
 EnableDebug::EnableDebug()
 {
-	debugf("ExampleCommand Instantiating");
 }
 
 EnableDebug::~EnableDebug()
@@ -17,14 +16,13 @@ EnableDebug::~EnableDebug()
 
 void EnableDebug::initCommand()
 {
-	commandHandler.registerCommand(CommandDelegate("enDebug","Enable Debug Command from Class","Application",commandFunctionDelegate(&EnableDebug::processEnableDebug,this)));
-	commandHandler.registerCommand(CommandDelegate("startSPI","Start SPI","Application",commandFunctionDelegate(&EnableDebug::processStartSPI,this)));
-	commandHandler.registerCommand(CommandDelegate("showIP","Show IP Address","Application",commandFunctionDelegate(&EnableDebug::showIP,this)));
+	commandHandler.registerCommand(CommandDelegate("enDebug","Enable Debug ","Appl",commandFunctionDelegate(&EnableDebug::processEnableDebug,this)));
+	commandHandler.registerCommand(CommandDelegate("startSPI","Start SPI","Appl",commandFunctionDelegate(&EnableDebug::processStartSPI,this)));
+	commandHandler.registerCommand(CommandDelegate("showIP","Show IP","Appl",commandFunctionDelegate(&EnableDebug::showIP,this)));
 }
 
 
 void EnableDebug::showIP(String commandLine, CommandOutput* commandOutput) {
-	commandOutput->printf("Start SPI\r\n");
 	String IP = WifiStation.getIP().toString();
 	commandOutput->printf(IP.c_str());
 	commandOutput->printf("\r\n");
@@ -51,10 +49,7 @@ void EnableDebug::processEnableDebug(String commandLine, CommandOutput* commandO
 
 	if (numToken == 1)
 	{
-		commandOutput->printf("Enable Debug Commands available : \r\n");
-		commandOutput->printf("on   : Set example status ON\r\n");
-		commandOutput->printf("off  : Set example status OFF\r\n");
-		commandOutput->printf("status : Show example status\r\n");
+		commandOutput->printf("on/off/status\r\n");
 	}
 	else
 	{
@@ -71,10 +66,9 @@ void EnableDebug::processEnableDebug(String commandLine, CommandOutput* commandO
 		else if (commandToken[1] == "status")
 		{
 			String tempString = status ? "ON" : "OFF";
-			commandOutput->printf("Example Status is %s\r\n",tempString.c_str());
+			commandOutput->printf("Status is %s\r\n",tempString.c_str());
 		};
 		telnet.enableDebug(status);
-		Debug.printf("This is debug after telnet start\r\n");
 	}
 }
 

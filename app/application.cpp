@@ -198,11 +198,11 @@ void loop() {
 
 	if (enableDebug.getDebugEnabled() & sendIndicator) {
 		// show SPI Output before sending
-		Debug.printf("SPI OUT:");
-		for (int i=0;i<SPIChainLen;i++) {
-			Debug.printf("0x%02x ",SPI_Buffer[i]);
-		}
-		Debug.printf("\r\n");
+//		Debug.printf("SPI OUT:");
+//		for (int i=0;i<SPIChainLen;i++) {
+//			Debug.printf("0x%02x ",SPI_Buffer[i]);
+//		}
+//		Debug.printf("\r\n");
 	}
 
 	if (sendIndicator) {
@@ -219,11 +219,11 @@ void loop() {
 
 	if (enableDebug.getDebugEnabled() & sendIndicator) {
 		// show SPI Input after receiving
-		Debug.printf("SPI IN :");
-		for (int i=0;i<SPIChainLen;i++) {
-			Debug.printf("0x%02x ",SPI_Buffer[i]);
-		}
-		Debug.printf("\r\n");
+//		Debug.printf("SPI IN :");
+//		for (int i=0;i<SPIChainLen;i++) {
+//			Debug.printf("0x%02x ",SPI_Buffer[i]);
+//		}
+//		Debug.printf("\r\n");
 	}
 
 	if (sendIndicator) {
@@ -274,15 +274,12 @@ void initSPI(unsigned int time) {
 
 	// initialize Soft SPI
 	if (!myDDS) {
-		Debug.println("newDDS");
 		myDDS = new(SPI_DDS);
 	}
 	if (!myAI) {
-		Debug.println("newAI");
 		myAI = new(SPI_AI);
 	}
 	if (!myMove) {
-		Debug.println("myMove");
 		myMove = new(SPI_Move);
 	}
 
@@ -294,14 +291,14 @@ void initSPI(unsigned int time) {
 	if(pSoftSPI)
 	{
 		pSoftSPI->begin();
-		Debug.println("SPI is initialized now.");
+//		Debug.println("SPI is initialized now.");
 
 		SPIChainLen = myMove->getSPIBufferLen() + myAI->getSPIBufferLen() + myDDS->getSPIBufferLen();
-		Debug.printf("SPI Chainlen %d \r\n", SPIChainLen);
+//		Debug.printf("SPI Chainlen %d \r\n", SPIChainLen);
 
 		if (SPIChainLen > sizeof(SPI_Buffer)) return;
 	}
-	Debug.println("Start SPI Loop");
+//	Debug.println("Start SPI Loop");
 	procTimer.initializeMs(loopTime, loop).start();
 }
 
