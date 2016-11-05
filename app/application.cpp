@@ -18,19 +18,10 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 #include "../include/EnableDebug.h"
 #include "../include/NtpClient.h"
 #include "webServer.h"
+#include "credentials.h"
 
 //#define debug
 //#define SerialDebug
-
-// If you want, you can define WiFi settings globally in Eclipse Environment Variables
-#ifndef WIFI_SSID_Daheim
-	#define WIFI_SSID_Daheim "daham2" // Put you SSID and Password here
-	#define WIFI_PWD_Daheim "47110815"
-#endif
-#ifndef WIFI_SSID2
-#define WIFI_SSID2 "un3erwegs"
-#define WIFI_PWD2 "moon2Light"
-#endif
 
 Timer procTimer;			// cyclic Timer processing SPI loop and devices
 unsigned int loopTime;
@@ -353,8 +344,7 @@ void init()
 	Debug.start();
 
 	WifiStation.enable(true);
-//	WifiStation.config(WIFI_SSID_Daheim, WIFI_PWD_Daheim);
-	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
+	WifiStation.config(WIFI_SSID, WIFI_PWD);
 	WifiStation.setHostname("Astro");
 
 	WifiAccessPoint.config("astro","nomie",AUTH_OPEN,false);

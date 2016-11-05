@@ -22,9 +22,7 @@
 	}   
 
 	function testWebSocket() {
-//		var wsUri = "ws://" + location.host + "/";
-		var wsUri = "ws://192.168.0.18/";
-//		var wsUri = "ws://10.0.0.8/";
+		var wsUri = "ws://" + location.host + "/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
