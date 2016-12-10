@@ -296,12 +296,7 @@ void startmDNS() {
     espconn_mdns_init(info);
 }
 
-/***************************************************************
- * Connection established
- * 	start services
- */
-void connectOk()
-{
+void startAstro() {
 	startWebServer();
 	telnet.listen(23);
 	enableDebug.initCommand();
@@ -310,7 +305,14 @@ void connectOk()
 
 	myFtp.listen(21);
 	myFtp.addUser("me", "123"); // FTP account
+}
 
+/***************************************************************
+ * Connection established
+ * 	start services
+ */
+void connectOk()
+{
 	ntp = new ntpClient();
 }
 
@@ -344,7 +346,7 @@ void init()
 	Debug.start();
 
 	WifiStation.enable(true);
-	WifiStation.config(WIFI_SSID, WIFI_PWD);
+	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
 	WifiStation.setHostname("Astro");
 
 	WifiAccessPoint.config("astro","nomie",AUTH_OPEN,false);
@@ -354,4 +356,5 @@ void init()
 
 	// Run our method when station was connected to AP
 	WifiStation.waitConnection(connectOk);
+	startAstro();
 }
