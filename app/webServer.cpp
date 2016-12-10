@@ -98,128 +98,141 @@ void newConnectOk()
 	String IP = WifiStation.getIP().toString();
 }
 
+void workJsonObjekt(JsonObject &root) {
+	String value = root["msg"].asString();
+	Debug.println(value);
+	if (value==String("bytes")) {
+		const char* buffer;
+		char* end;
+		value = root["value"].asString();
+		buffer = value.c_str();
+
+		char temp[10];
+		for (char i=0; i<sizeof(bytes); i++) {
+			bytes[i] = (unsigned char)strtol (buffer,&end,16);
+			buffer = end + 1;
+		}
+	}
+	if (value==String("mode")) {
+		int temp = root["value"];
+		setMode((MODES)temp);
+	}
+
+	if (value==String("enableDebug")) {
+		enableBytesOut = root["value"];
+	}
+	if (value==String("magnet")) {
+		if (root["value"] == 1) {
+			myDDS->setMagnet();
+		} else {
+			myDDS->clrMagnet();
+		}
+	}
+
+	{
+		float val = root["value"];
+		if (value==String("Pgain0")) {
+			myMove->setPControl(0,val);
+		}
+		if (value==String("Pgain1")) {
+			myMove->setPControl(1,val);
+		}
+	}
+	{
+		char pwm = root["value"];
+		if (value==String("motor1")) {
+			myMove->setPWM(0,pwm);
+		}
+		if (value==String("motor2")) {
+			myMove->setPWM(1,pwm);
+		}
+	}
+
+	{
+		long targetPos = root["value"];
+		if (value==String("target0")) {
+			myMove->setPosition(0,targetPos);
+		}
+		if (value==String("target1")) {
+			myMove->setPosition(1,targetPos);
+		}
+	}
+	{
+		int LED = root["value"];
+		if (value==String("DDSLED")) {
+			if (LED < 0) {
+				LED *= -1;
+				myDDS->clrLED(LED-1);
+			} else {
+				myDDS->setLED(LED-1);
+			}
+		}
+		if (value==String("MOTLED")) {
+			if (LED < 0) {
+				LED *= -1;
+				myMove->clrLED(LED-1);
+			} else {
+				myMove->setLED(LED-1);
+			}
+		}
+		if (value==String("POSCTRL")) {
+			if (LED == 0) {
+				myMove->posControlEnable(0);
+				usePoti = 0;
+			}
+			if (LED == 1) {
+				myMove->posControlEnable(1);
+				usePoti = 0;
+			}
+			if (LED == 2) {
+				myMove->posControlEnable(0);
+				usePoti = 1;
+			}
+		}
+	}
+	if (value==String("frequency")) {
+		unsigned long freq = root["value"];
+		myDDS->setDDSValue(freq);
+	}
+	if (value==String("filter")) {
+		unsigned char val = root["value"];
+		myAI->setFilter(val);
+	}
+
+	if (value==String("WIFI")) {
+		String SSID = root["SSID"].asString();
+		String PWD = root["PWD"].asString();
+		WifiStation.config(SSID,PWD);
+		WifiStation.waitConnection(newConnectOk);
+	}
+	if (value==String("UTC")) {
+		time_t UTC = root["value"];
+		SystemClock.setTime(UTC,eTZ_UTC);
+	}
+	if (value==String("PARAM")) {
+		paramOpen = root["value"];
+	}
+	if (value==String("manuell")) {
+		manualOpen = root["value"];
+	}
+
+}
+
 void wsMessageReceived(WebSocket& socket, const String& message)
 {
-	Debug.println(message);
+//	Debug.println(message);
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(message);
 
 	String value = root["type"].asString();
 	if (value==String("JSON")) {
-		value = root["msg"].asString();
-		if (value==String("bytes")) {
-			const char* buffer;
-			char* end;
-			value = root["value"].asString();
-			buffer = value.c_str();
-
-			char temp[10];
-			for (char i=0; i<sizeof(bytes); i++) {
-				bytes[i] = (unsigned char)strtol (buffer,&end,16);
-				buffer = end + 1;
-			}
-		}
-		if (value==String("mode")) {
-			int temp = root["value"];
-			setMode((MODES)temp);
-		}
-
-		if (value==String("enableDebug")) {
-			enableBytesOut = root["value"];
-		}
-		if (value==String("magnet")) {
-			if (root["value"] == 1) {
-				myDDS->setMagnet();
-			} else {
-				myDDS->clrMagnet();
-			}
-		}
-
-		{
-			float val = root["value"];
-			if (value==String("Pgain0")) {
-				myMove->setPControl(0,val);
-			}
-			if (value==String("Pgain1")) {
-				myMove->setPControl(1,val);
-			}
-		}
-		{
-			char pwm = root["value"];
-			if (value==String("motor1")) {
-				myMove->setPWM(0,pwm);
-			}
-			if (value==String("motor2")) {
-				myMove->setPWM(1,pwm);
-			}
-		}
-
-		{
-			long targetPos = root["value"];
-			if (value==String("target0")) {
-				myMove->setPosition(0,targetPos);
-			}
-			if (value==String("target1")) {
-				myMove->setPosition(1,targetPos);
-			}
-		}
-		{
-			int LED = root["value"];
-			if (value==String("DDSLED")) {
-				if (LED < 0) {
-					LED *= -1;
-					myDDS->clrLED(LED-1);
-				} else {
-					myDDS->setLED(LED-1);
-				}
-			}
-			if (value==String("MOTLED")) {
-				if (LED < 0) {
-					LED *= -1;
-					myMove->clrLED(LED-1);
-				} else {
-					myMove->setLED(LED-1);
-				}
-			}
-			if (value==String("POSCTRL")) {
-				if (LED == 0) {
-					myMove->posControlEnable(0);
-					usePoti = 0;
-				}
-				if (LED == 1) {
-					myMove->posControlEnable(1);
-					usePoti = 0;
-				}
-				if (LED == 2) {
-					myMove->posControlEnable(0);
-					usePoti = 1;
-				}
-			}
-		}
-		if (value==String("frequency")) {
-			unsigned long freq = root["value"];
-			myDDS->setDDSValue(freq);
-		}
-		if (value==String("filter")) {
-			unsigned char val = root["value"];
-			myAI->setFilter(val);
-		}
-
-		if (value==String("WIFI")) {
-			String SSID = root["SSID"].asString();
-			String PWD = root["PWD"].asString();
-			WifiStation.config(SSID,PWD);
-			WifiStation.waitConnection(newConnectOk);
-		}
-		if (value==String("UTC")) {
-			time_t UTC = root["value"];
-			SystemClock.setTime(UTC,eTZ_UTC);
-		}
-		if (value==String("PARAM")) {
-			paramOpen = root["value"];
-		}
-		if (value==String("manuell")) {
-			manualOpen = root["value"];
+		Debug.print("msg: ");
+		workJsonObjekt(root);
+	} else if (value==String("ARRAY")) {
+		JsonArray& msg = root["msg"];
+		for (int i = 0; i<msg.size(); i++) {
+			Debug.print("Array: ");
+			workJsonObjekt(msg[i]);
 		}
 	}
 }
