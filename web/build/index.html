@@ -23,6 +23,7 @@
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
+//		var wsUri = "ws://10.0.0.101/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -152,7 +153,9 @@
 			}
 		}
 		if (myInput.id == "incr1") {
-			var temp = HoursMinutesSeconds(myInput.value / (4*12) / 250 * 20 / 80 * 24);
+			var time = myInput.value / (4*12) / 250 * 20 / 80 * 24;
+			
+			var temp = HoursMinutesSeconds(time);
 			var valuefield = document.getElementById("Hour");
 			if (!(valuefield === document.activeElement)) {
 				valuefield.value = temp;
@@ -182,7 +185,9 @@
 			}
 			if (!(valuefield === document.activeElement)) {
 				valuefield.value = timevar/1000/86400 * (4*12) * 250 / 20 * 80;
-				sendValue(valuefield);
+				if (!isNaN(timevar)) {
+					sendValue(valuefield);					
+				}
 			}
 		}
 	}

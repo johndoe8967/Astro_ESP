@@ -100,6 +100,8 @@ void loop() {
 	case move:
 		myDDS->setMagnet();
 		if (delayedTransition(magOnDelay)) {
+			myMove->setPosition(0,myMove->getPos(0));
+			myMove->setPosition(1,myMove->getPos(1));
 			myMove->posControlEnable(1);
 			mode = moving;
 		}
@@ -124,6 +126,9 @@ void loop() {
 		break;
 	case star:
 		myMove->posControlEnable(0);
+		myMove->setPWM(0,0);
+		myMove->setPWM(1,0);
+
 		if (delayedTransition(magOffDelay)) {
 			myDDS->clrMagnet();
 			mode = staring;
@@ -144,7 +149,7 @@ void loop() {
 			myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
 			resetDelay();
 		} else if (myDDS->getDI(1)) {
-			myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
+			myMove->setPWM(1, ((myAI->getAI(1)>>8)-128)>>2);
 			resetDelay();
 		} else {
 			myMove->setPWM(0,0);
