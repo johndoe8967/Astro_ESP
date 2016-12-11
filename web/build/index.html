@@ -23,7 +23,7 @@
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
-//		var wsUri = "ws://10.0.0.101/";
+//		var wsUri = "ws://10.0.0.100/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -243,7 +243,7 @@ input{
     <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
     <label for="ref"> Ref</label><br> 
     <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
-    <label for="star"> F&uuml;hren</label><br> 
+    <label for="star"> Sync</label><br> 
     <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
     <label for="move"> GoTo</label>
   </fieldset>
@@ -333,12 +333,12 @@ Card 2
 	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour" size="10" value="0" onchange="calcPos(this)">
 	<br>
 	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this);">
-	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this);">		
+	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="2.0" onchange="sendValue(this);">		
 	<br>
 	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
 	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
 	<br>
-	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="1" onchange="sendValue(this);">
+	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="10" onchange="sendValue(this);">
 </td>
 </tr>
 </table></div></td></tr>

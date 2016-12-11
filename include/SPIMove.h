@@ -37,7 +37,7 @@ private:
 	void calcSPIOutBuffer();
 	void calcControlLoop(unsigned char ch);
 	bool posControlLoopEnabled=false;
-	float P[NUM_CHANNELS]={1,1};
+	float P[NUM_CHANNELS]={1,2};
 
 	unsigned char *bytes;
 	long targetPos[NUM_CHANNELS];
