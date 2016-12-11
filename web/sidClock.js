@@ -61,17 +61,33 @@ function calculate() {
 	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
 	if (!(LMST === document.activeElement)) {
 		var blah = HoursMinutesSeconds(calcLMST());
-		LMST.value = HoursMinutesSeconds(calcLMST()-positiontime);
+		var temp = (calcLMST()-positiontime);
+		if (temp >= 24) {
+			temp = temp - 24;
+		}
+		LMST.value = HoursMinutesSeconds(temp);
 	}
 }
 
 function setLMST() {
 	var LMST = document.getElementById("startime");
 	var hourfield = document.getElementById("Hour1");
+	var position = document.getElementById("incr1");
+	var positiontime = position.value / (4*12) / 250 * 20 / 80 * 24;
 	
 	var d = new Date("1970-01-01T" + LMST.value + "Z");
 	var hour= d.getTime()/1000/3600; //- d.getTimezoneOffset()/60;
-	hourfield.value = HoursMinutesSeconds(calcLMST() - hour);
+	var temp = calcLMST() - hour;
+
+	
+	if (temp-positiontime >= 12) {
+		temp = temp - 24;
+	}
+	if (temp-positiontime <= -12) {
+		temp = temp + 24;
+	}
+	hourfield.value = HoursMinutesSeconds(temp);
+	
 	calcPos(hourfield);
 }
 
