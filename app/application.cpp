@@ -148,13 +148,16 @@ void loop() {
 		if (myDDS->getDI(0)) {
 			myMove->setPWM(0, (myAI->getAI(0)>>8)-128);
 			resetDelay();
-		} else if (myDDS->getDI(1)) {
+		} else {
+			myMove->setPWM(0,0);
+		}
+		if (myDDS->getDI(1)) {
 			myMove->setPWM(1, ((myAI->getAI(1)>>8)-128)>>2);
 			resetDelay();
 		} else {
-			myMove->setPWM(0,0);
 			myMove->setPWM(1,0);
-
+		}
+		if (!myDDS->getDI(1) && !myDDS->getDI(1)) {
 			if (delayedTransition(magOffDelay)) {
 				mode = (MODES)(oldMode%10);
 			}
