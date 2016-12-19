@@ -17,6 +17,10 @@ SPI_Move::SPI_Move() {
 	increments[1] = 0;
 	targetPos[0]  = 0;
 	targetPos[1]  = 0;
+	targetPosReached[0] = false;
+	targetPosReached[1] = false;
+	targetPosLimit[0] = 10;
+	targetPosLimit[1] = 10;
 	LEDs		 = 0x00;
 	offset[0]	 = 0x00;
 	offset[1]	 = 0x00;
@@ -91,6 +95,7 @@ void SPI_Move::calcSPIOutBuffer() {
 
 void SPI_Move::calcControlLoop(unsigned char ch) {
 	long error = targetPos[ch] - this->getPos(ch);
+	targetPosReached[ch] = (abs(error) < targetPosLimit[ch]);
 	float control =  (float)error * P[ch];
 	if (ch == 0) {
 	 	if (control >127) control = 127;

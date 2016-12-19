@@ -23,7 +23,7 @@
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
-//		var wsUri = "ws://10.0.0.100/";
+//		var wsUri = "ws://192.168.0.9/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -64,9 +64,30 @@
 				var d = new Date(msg.value*1000);
 				msg.value = d.toUTCString();
 			}
+			if (msg.msg == "mode") {
+				switch (msg.value) {
+				case "0":
+					msg.msg = "move";
+					break;
+				case "1":
+					msg.msg = "star";
+					break;
+				case "2":
+					msg.msg = "ref";
+					break;
+				case "4":
+					msg.msg = "sync";
+					break;
+					
+				}
+			} 
 			var valuefield = document.getElementById(msg.msg);
 			if (!(valuefield === document.activeElement)) {
-				valuefield.value = msg.value;				
+				if (valuefield.type == "radio") {
+					valuefield.checked = true;
+				} else {
+					valuefield.value = msg.value;									
+				}
 			}
 			calcPos(valuefield);
 			break;
@@ -221,7 +242,7 @@ input[type="range"] {position: relative;margin-left: 1em;}
 input[type="range"]:after, input[type="range"]:before {position: absolute;top: 1em;color: #aaa;}
 input[type="range"]:before {left:0em; content: attr(min);}input[type="range"]:after {right: 0em;content: attr(max);}
 Label {
-    font-size: 200%;
+    font-size: 100%;
 }
 input{
     font-size: 200%;
@@ -243,9 +264,11 @@ input{
     <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
     <label for="ref"> Ref</label><br> 
     <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
-    <label for="star"> Sync</label><br> 
+    <label for="star"> Tracking</label><br> 
     <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
-    <label for="move"> GoTo</label>
+    <label for="move"> GoTo</label><br>
+    <input type="radio" id="sync" name="mode" value="4" onclick="handleClick(this);">
+    <label for="sync"> Sync</label>
   </fieldset>
 </td>
 <td>
@@ -333,12 +356,15 @@ Card 2
 	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour" size="10" value="0" onchange="calcPos(this)">
 	<br>
 	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this);">
-	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="2.0" onchange="sendValue(this);">		
+	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this);">		
+	<br>
+	<label>PosReachedLimit 1:</label> <input class="form-control" type="number" id="PosLim0" name="PosLim0" size="10" value="10" onchange="sendValue(this);">
+	<label>PosReachedLimit 2:</label> <input class="form-control" type="number" id="PosLim1" name="PosLim1" size="10" value="10" onchange="sendValue(this);">		
 	<br>
 	<label>Analog 1:</label> <input class="form-control" type="number" id="AI0" size="10" value="0" disabled>
 	<label>Analog 2:</label> <input class="form-control" type="number" id="AI1" size="10" value="0" disabled>
 	<br>
-	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="10" onchange="sendValue(this);">
+	<label>Filter:</label> <input class="form-control" type="number" id="filter" name="filter" size="10" value="1" onchange="sendValue(this);">
 </td>
 </tr>
 </table></div></td></tr>

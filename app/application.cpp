@@ -45,6 +45,7 @@ FTPServer myFtp;
 ntpClient *ntp;
 
 MODES mode = move;
+MODES modePrev = move;
 MODES oldMode;
 
 unsigned char enableBytesOut=0;
@@ -77,7 +78,7 @@ MODES checkManualMove(MODES actmode) {
 }
 
 void setMode(MODES newMode) {
-	if ((newMode == move) || (newMode == ref) || (newMode==star)) {
+	if ((newMode == move) || (newMode == ref) || (newMode==star) || (newMode==sync) || (newMode==slew)) {
 		mode = newMode;
 		resetDelay();
 	}
@@ -97,16 +98,24 @@ void setMode(MODES newMode) {
 void loop() {
 
 	switch (mode) {
+	case sync:
+	case slew:
 	case move:
 		myDDS->setMagnet();
 		if (delayedTransition(magOnDelay)) {
-			myMove->setPosition(0,myMove->getPos(0));
-			myMove->setPosition(1,myMove->getPos(1));
 			myMove->posControlEnable(1);
+			oldMode = mode;
 			mode = moving;
 		}
 		break;
+
+
 	case moving:
+		if (oldMode != move) {
+			if (myMove->setPositionReached(0) && myMove->setPositionReached(1)) {
+				mode = star;
+			}
+		}
 		break;
 
 	case ref:
@@ -165,6 +174,16 @@ void loop() {
 		break;
 	default:
 		break;
+	}
+
+	if (mode != modePrev) {
+		char modeString[2];
+		modeString[0] = '0' + mode%10;
+		modeString[1] = 0;
+		sendMessage("mode", modeString);
+		Debug.print("new mode:");
+		Debug.println(modeString);
+		modePrev = mode;
 	}
 
 	if (enableBytesOut) {

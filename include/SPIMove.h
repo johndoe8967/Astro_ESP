@@ -29,6 +29,8 @@ public:
 	void clrLED(unsigned char ch) { if(ch<4) { LEDs &= ~(1<<ch);}};
 	void posControlEnable(bool en) { posControlLoopEnabled=en;}
 	void setPosition(unsigned char ch, long pos) { if (ch<NUM_CHANNELS) {targetPos[ch] = pos;}};
+	bool setPositionReached(unsigned char ch) { if (ch<NUM_CHANNELS) {return targetPosReached[ch];} else return false;};
+	void setPositionLimit(unsigned char ch, long limit) { if (ch<NUM_CHANNELS) {targetPosLimit[ch] = limit;}};
 	void setPControl(unsigned char ch, float setP) { if ((ch<NUM_CHANNELS)&&(setP>0)) {P[ch]=setP;}};
 	void setReference(unsigned char ch) {if(ch<NUM_CHANNELS) { offset[ch] = targetPos[ch]-increments[ch]; }};
 
@@ -37,10 +39,12 @@ private:
 	void calcSPIOutBuffer();
 	void calcControlLoop(unsigned char ch);
 	bool posControlLoopEnabled=false;
+	bool targetPosReached[NUM_CHANNELS];
 	float P[NUM_CHANNELS]={1,2};
 
 	unsigned char *bytes;
 	long targetPos[NUM_CHANNELS];
+	long targetPosLimit[NUM_CHANNELS];
 	long increments[NUM_CHANNELS];
 	long offset[NUM_CHANNELS];
 

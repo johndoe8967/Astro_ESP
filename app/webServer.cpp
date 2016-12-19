@@ -115,6 +115,8 @@ void workJsonObjekt(JsonObject &root) {
 	}
 	if (value==String("mode")) {
 		int temp = root["value"];
+		myMove->setPosition(0,myMove->getPos(0));
+		myMove->setPosition(1,myMove->getPos(1));
 		setMode((MODES)temp);
 	}
 
@@ -136,6 +138,15 @@ void workJsonObjekt(JsonObject &root) {
 		}
 		if (value==String("Pgain1")) {
 			myMove->setPControl(1,val);
+		}
+	}
+	{
+		float val = root["value"];
+		if (value==String("PosLim0")) {
+			myMove->setPositionLimit(0,val);
+		}
+		if (value==String("PosLim1")) {
+			myMove->setPositionLimit(1,val);
 		}
 	}
 	{
