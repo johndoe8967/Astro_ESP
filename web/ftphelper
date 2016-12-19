@@ -1,0 +1,4 @@
+#! /bin/sh
+
+FILE="$1"
+ftp -f -r 60 -v -u "ftp://me:123@192.168.0.9/$(basename $FILE)" "$FILE"
