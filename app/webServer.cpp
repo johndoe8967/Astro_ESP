@@ -14,20 +14,23 @@ bool paramOpen=false;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
+char const cjsonpart1[25] = "{\"type\": \"JSON\",\"msg\": \"";
+char const cjsonpart2[14] = "\", \"value\": \"";
+
 void sendSPIData(bool in, unsigned char bytes[11]) {
 	String outData;
 	for (char i=0; i<11; i++) {
 		outData += String(bytes[i],16);
 		outData += ',';
 	}
-	String message = "{\"type\": \"JSON\",\"msg\": ";
+	String message = cjsonpart1;
 	if (in) {
-		message +=  "\"SPIIN\"";
+		message +=  "SPIIN";
 	}
 	else {
-		message +=  "\"SPIOUT\"";
+		message +=  "SPIOUT";
 	}
-	message +=  ", \"value\": \"" + outData + "\"}";
+	message +=  cjsonpart2 + outData + "\"}";
 
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
@@ -36,7 +39,7 @@ void sendSPIData(bool in, unsigned char bytes[11]) {
 void sendMessage(const char *msg, const char *value) {
 	String msg_string = String(msg);
 	String val_string = String(value);
-	String message = "{\"type\": \"JSON\",\"msg\": \""+ msg_string +"\", \"value\": \"" + val_string + "\"}";
+	String message = cjsonpart1 + msg_string +cjsonpart2  + val_string + "\"}";
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
 }
@@ -64,8 +67,6 @@ void sendActData() {
 void onIndex(HttpRequest &request, HttpResponse &response)
 {
 	TemplateFileStream *tmpl = new TemplateFileStream("index.html");
-//	auto &vars = tmpl->variables();
-	//vars["counter"] = String(counter);
 	response.sendTemplate(tmpl); // this template object will be deleted automatically
 }
 
@@ -97,6 +98,7 @@ void newConnectOk()
 {
 	String IP = WifiStation.getIP().toString();
 }
+
 
 void workJsonObjekt(JsonObject &root) {
 	String value = root["msg"].asString();
@@ -163,9 +165,11 @@ void workJsonObjekt(JsonObject &root) {
 		long targetPos = root["value"];
 		if (value==String("target0")) {
 			myMove->setPosition(0,targetPos);
+			sendMessage("target0",root["value"]);
 		}
 		if (value==String("target1")) {
 			myMove->setPosition(1,targetPos);
+			sendMessage("target1",root["value"]);
 		}
 	}
 	{
@@ -255,11 +259,7 @@ void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 void wsDisconnected(WebSocket& socket)
 {
 	totalActiveSockets--;
-
-	// Notify everybody about lost connection
 	WebSocketsList &clients = server.getActiveWebSockets();
-//	for (int i = 0; i < clients.count(); i++)
-//		clients[i].sendString("We lost our friend :( Total: " + String(totalActiveSockets));
 }
 
 void startWebServer()
