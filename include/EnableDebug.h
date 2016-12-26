@@ -10,6 +10,9 @@
 #include "../Services/CommandProcessing/CommandProcessingIncludes.h"
 #include <SmingCore/Network/TelnetServer.h>
 
+//#define startSPI
+
+
 extern TelnetServer telnet;
 extern void initSPI(unsigned int time);
 
@@ -24,7 +27,10 @@ public:
 private:
 	bool status = true;
 	void processEnableDebug(String commandLine, CommandOutput* commandOutput);
+#ifdef startSPI
 	void processStartSPI(String commandLine, CommandOutput* commandOutput);
+#endif
+
 	void showIP(String commandLine, CommandOutput* commandOutput);
 };
 
