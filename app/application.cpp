@@ -78,7 +78,7 @@ MODES checkManualMove(MODES actmode) {
 }
 
 void setMode(MODES newMode) {
-	if ((newMode == move) || (newMode == ref) || (newMode==star) || (newMode==sync) || (newMode==slew)) {
+	if ((newMode == move) || (newMode == sync) || (newMode==star) || (newMode==slew)) {
 		mode = newMode;
 		resetDelay();
 	}
@@ -99,7 +99,6 @@ void setMode(MODES newMode) {
 void loop() {
 
 	switch (mode) {
-	case sync:
 	case slew:
 	case move:
 		myDDS->setMagnet();
@@ -123,7 +122,7 @@ void loop() {
 		}
 		break;
 
-	case ref:
+	case sync:
 		myMove->posControlEnable(0);
 		myMove->setPWM(0,0);
 		myMove->setPWM(1,0);
