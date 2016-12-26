@@ -39,7 +39,7 @@ unsigned char usePoti;
 TelnetServer telnet;
 EnableDebug enableDebug;	// enable debug output command
 
-FTPServer myFtp;
+//FTPServer myFtp;
 
 // Callback example using defined class ntpClientDemo
 ntpClient *ntp;
@@ -330,8 +330,8 @@ void startAstro() {
 	initSPI(20);
 	startmDNS();
 
-	myFtp.listen(21);
-	myFtp.addUser("me", "123"); // FTP account
+//	myFtp.listen(21);
+//	myFtp.addUser("me", "123"); // FTP account
 }
 
 /***************************************************************
