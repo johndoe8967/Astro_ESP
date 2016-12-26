@@ -114,8 +114,8 @@ void loop() {
 		if (oldMode != move) {
 			if (myMove->setPositionReached(0) && myMove->setPositionReached(1)) {
 				if (delayedTransition(posDelay)) {
-				mode = star;
-			}
+					mode = star;
+				}
 			} else {
 				resetDelay();
 			}
@@ -332,7 +332,6 @@ void startAstro() {
 	telnet.listen(23);
 	enableDebug.initCommand();
 	initSPI(20);
-	startmDNS();
 
 //	myFtp.listen(21);
 //	myFtp.addUser("me", "123"); // FTP account
@@ -345,6 +344,7 @@ void startAstro() {
 void connectOk()
 {
 	ntp = new ntpClient();
+	startmDNS();
 }
 
 /***************************************************************
@@ -376,9 +376,10 @@ void init()
 	// start debug, will be used through telnet
 	Debug.start();
 
-	WifiStation.enable(true);
 	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
-	WifiStation.setHostname("Astro");
+	WifiStation.enable(true);
+	WifiStation.setHostname("astro");
+	WifiStation.waitConnection(connectOk);
 
 	WifiAccessPoint.config("astro","nomie",AUTH_OPEN,false);
 	WifiAccessPoint.enable(true);
@@ -386,6 +387,6 @@ void init()
 	commandHandler.registerSystemCommands();
 
 	// Run our method when station was connected to AP
-	WifiStation.waitConnection(connectOk);
 	startAstro();
+
 }
