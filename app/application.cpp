@@ -55,11 +55,11 @@ unsigned char *pBuffer, *pSource;
 
 
 // delay by number of repeats
-char delayCount;
+unsigned char delayCount;
 inline void resetDelay() {
 	delayCount = 0;
 }
-bool delayedTransition(char delay) {
+bool delayedTransition(unsigned char delay) {
 	if (delayCount++ == delay) {
 		resetDelay();
 		return true;
@@ -92,8 +92,9 @@ void setMode(MODES newMode) {
  * 	debug mode without SPI device classes (only byte array IO)
  *
  */
-#define magOnDelay 10
-#define magOffDelay 10
+#define magOnDelay 100
+#define magOffDelay 50
+#define posDelay 25
 
 void loop() {
 
@@ -113,7 +114,11 @@ void loop() {
 	case moving:
 		if (oldMode != move) {
 			if (myMove->setPositionReached(0) && myMove->setPositionReached(1)) {
+				if (delayedTransition(posDelay)) {
 				mode = star;
+			}
+			} else {
+				resetDelay();
 			}
 		}
 		break;
