@@ -102,8 +102,8 @@ void SPI_Move::calcControlLoop(unsigned char ch) {
 		if (control <-127) control = -127;
 
 	} else {
-		if (control >32) control = 32;
-		if (control <-32) control = -32;
+		if (control >127) control = 127;
+		if (control <-127) control = -127;
 	}
 	motor_pwm[ch] = control;
 }
