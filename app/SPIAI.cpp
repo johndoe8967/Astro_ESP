@@ -10,7 +10,7 @@
 
 SPI_AI::SPI_AI() {
 	bytes = new(unsigned char[AISPIBufLen]);
-	filter = 10;
+	filter = 1;
 	Debug.println((long)bytes);
 }
 
