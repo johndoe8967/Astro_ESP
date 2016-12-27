@@ -220,15 +220,6 @@ void loop() {
 		reductionCounter = 0;
 	}
 
-	if (enableDebug.getDebugEnabled() & sendIndicator) {
-		// show SPI Output before sending
-//		Debug.printf("SPI OUT:");
-//		for (int i=0;i<SPIChainLen;i++) {
-//			Debug.printf("0x%02x ",SPI_Buffer[i]);
-//		}
-//		Debug.printf("\r\n");
-	}
-
 	if (sendIndicator) {
 		sendSPIData(false, SPI_Buffer);
 	}
@@ -240,15 +231,6 @@ void loop() {
 	pSoftSPI->transfer(SPI_Buffer,SPIChainLen);
 	pSoftSPI->endTransaction();
 #endif
-
-	if (enableDebug.getDebugEnabled() & sendIndicator) {
-		// show SPI Input after receiving
-//		Debug.printf("SPI IN :");
-//		for (int i=0;i<SPIChainLen;i++) {
-//			Debug.printf("0x%02x ",SPI_Buffer[i]);
-//		}
-//		Debug.printf("\r\n");
-	}
 
 	if (sendIndicator) {
 		sendSPIData(true, SPI_Buffer);
