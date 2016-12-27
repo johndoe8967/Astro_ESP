@@ -78,7 +78,7 @@ MODES checkManualMove(MODES actmode) {
 }
 
 void setMode(MODES newMode) {
-	if ((newMode == move) || (newMode == sync) || (newMode==star) || (newMode==slew)) {
+	if ((newMode == move) || (newMode == sync) || (newMode==track) || (newMode==slew)) {
 		mode = newMode;
 		resetDelay();
 	}
@@ -99,8 +99,8 @@ void setMode(MODES newMode) {
 void loop() {
 
 	switch (mode) {
-	case slew:
-	case move:
+	case slew:							// slew from ASCOM returns to track automatically
+	case move:							// manual goto from web GUI stays in goto
 		myDDS->setMagnet();
 		if (delayedTransition(magOnDelay)) {
 			myMove->posControlEnable(1);
@@ -114,7 +114,7 @@ void loop() {
 		if (oldMode != move) {
 			if (myMove->setPositionReached(0) && myMove->setPositionReached(1)) {
 				if (delayedTransition(posDelay)) {
-					mode = star;
+					mode = track;
 				}
 			} else {
 				resetDelay();
@@ -128,26 +128,26 @@ void loop() {
 		myMove->setPWM(1,0);
 		if (delayedTransition(magOffDelay)) {
 			myDDS->clrMagnet();
-			mode = refing;
+			mode = syncing;
 		}
 		break;
-	case refing:
+	case syncing:
 		myMove->setReference(0);
 		myMove->setReference(1);
 
 		mode = checkManualMove(mode);
 		break;
-	case star:
+	case track:
 		myMove->posControlEnable(0);
 		myMove->setPWM(0,0);
 		myMove->setPWM(1,0);
 
 		if (delayedTransition(magOffDelay)) {
 			myDDS->clrMagnet();
-			mode = staring;
+			mode = tracking;
 		}
 		break;
-	case staring:
+	case tracking:
 		mode = checkManualMove(mode);
 		break;
 
@@ -185,7 +185,7 @@ void loop() {
 		modeString[0] = '0' + mode%10;
 		modeString[1] = 0;
 		sendMessage("mode", modeString);
-		Debug.print("new mode:");
+		Debug.print("mode");
 		Debug.println(modeString);
 		modePrev = mode;
 	}
