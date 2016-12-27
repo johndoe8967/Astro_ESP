@@ -165,7 +165,7 @@ void loop() {
 			myMove->setPWM(0,0);
 		}
 		if (myDDS->getDI(1)) {
-			myMove->setPWM(1, ((myAI->getAI(1)>>8)-128)>>2);
+			myMove->setPWM(1, (myAI->getAI(1)>>8)-128);
 			resetDelay();
 		} else {
 			myMove->setPWM(1,0);
