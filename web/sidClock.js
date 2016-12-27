@@ -10,7 +10,7 @@ function HoursMinutesSeconds(time) {
 	}
 	var h = Math.floor(time);
 	var min = Math.floor(60.0 * frac(time));
-	var secs = Math.round(60.0 * (60.0 * frac(time) - min));
+	var secs = Math.floor(60.0 * (60.0 * frac(time) - min));
 
 	var str="";
 	if (sign == -1) {str = "-"};

@@ -11,6 +11,7 @@ HttpServer server;
 int totalActiveSockets = 0;
 bool manualOpen=false;
 bool paramOpen=false;
+bool debugOpen=false;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
@@ -61,13 +62,16 @@ void sendActData() {
 		ltoa(SystemClock.now(),value_msg,10);
 		sendMessage("UTC",value_msg);
 	}
-
 }
 
 void onIndex(HttpRequest &request, HttpResponse &response)
 {
-	TemplateFileStream *tmpl = new TemplateFileStream("index.html");
-	response.sendTemplate(tmpl); // this template object will be deleted automatically
+	if (totalActiveSockets < 4) {
+		TemplateFileStream *tmpl = new TemplateFileStream("index.html");
+		response.sendTemplate(tmpl); // this template object will be deleted automatically
+	} else {
+		response.notFound();
+	}
 }
 
 void onFile(HttpRequest &request, HttpResponse &response)
@@ -88,6 +92,10 @@ void onFile(HttpRequest &request, HttpResponse &response)
 void wsConnected(WebSocket& socket)
 {
 	totalActiveSockets++;
+	if (totalActiveSockets > 4) {
+		socket.close();
+	}
+	WebSocketsList &clients = server.getActiveWebSockets();
 }
 
 /***************************************************************
@@ -229,6 +237,9 @@ void workJsonObjekt(JsonObject &root) {
 	}
 	if (value==String("manuell")) {
 		manualOpen = root["value"];
+	}
+	if (value==String("Debug")) {
+		debugOpen = root["value"];
 	}
 
 }

@@ -20,6 +20,7 @@ extern SPI_AI   *myAI;
 extern unsigned char enableBytesOut;
 
 extern unsigned char usePoti;
+extern bool debugOpen;
 
 void startWebServer();
 void sendSPIData(bool in, unsigned char bytes[11]);

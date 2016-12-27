@@ -26,6 +26,8 @@ Link: http://www.electrodragon.com/w/SI4432_433M-Wireless_Transceiver_Module_%28
 Timer procTimer;			// cyclic Timer processing SPI loop and devices
 unsigned int loopTime;
 unsigned int reductionCounter;
+unsigned int reduction;
+bool sendIndicator = false;
 SPISoft *pSoftSPI = NULL;
 
 // Devices on the SPI loop
@@ -212,15 +214,15 @@ void loop() {
 	}
 
 	// reduction of html and debug interface to 1s cycle time
+	reduction = 500 / loopTime;
+	sendIndicator = 0;
 	reductionCounter++;
-	unsigned int reduction = 1000 / loopTime;
-	bool sendIndicator = 0;
 	if (reductionCounter >= reduction) {
 		sendIndicator = 1;
 		reductionCounter = 0;
 	}
 
-	if (sendIndicator) {
+	if (debugOpen && sendIndicator) {
 		sendSPIData(false, SPI_Buffer);
 	}
 
@@ -232,7 +234,7 @@ void loop() {
 	pSoftSPI->endTransaction();
 #endif
 
-	if (sendIndicator) {
+	if (debugOpen && sendIndicator) {
 		sendSPIData(true, SPI_Buffer);
 	}
 

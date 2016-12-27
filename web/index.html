@@ -2,9 +2,9 @@
 <meta charset="utf-8" />
 <head>
 <title>Astro SPI WebSocket</title>
-<script language="javascript" type="text/javascript" src=jquery-2.1.4.min.js></script>
-<script language="javascript" type="text/javascript" src=sidClock.js></script>
-<script language="javascript" type="text/javascript">
+<script src=jquery-2.1.4.min.js></script>
+<script src=sidClock.js></script>
+<script>
 	var output;
 
 	function init() {
@@ -23,7 +23,7 @@
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
-//		var wsUri = "ws://192.168.0.9/";
+//		var wsUri = "ws://192.168.0.12/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -257,8 +257,9 @@ input{
 <td width=1><input type=submit onclick="ShowHideEvent( 'Astro' );" value="Astro"></td>
 <tr>
 <td><div id=Astro class="collapsible">
-<table width=100% border=1>
-<td width=25%>
+<table style="width:100%" border=1>
+<tr>
+<td style="width:25%">
   <fieldset>
 
     <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
@@ -270,7 +271,7 @@ input{
   </fieldset>
 </td>
 <td>
-	<label>Rektaszension:</label> <input class="form-control" type="time" id="startime" size="10" value="0" onchange="setLMST()"><br>
+	<label>Rektaszension:</label> <input class="form-control" type="time" id="startime" size="10" value="00:00:00" onchange="setLMST()"><br>
 	<label>Deklination:</label> <input class="form-control" type="number" id="Azi1" step="1" style="width: 120px;" pattern="[0-9]*" value="0" onchange="calcPos(this)"><br>
 	<label>s&uuml;dl. Differenz:</label> <input class="form-control" type="text" id="Hour1" size="10" value="0"  disabled onchange="calcPos(this)">
 </td></tr></table></div></td></tr>
@@ -278,7 +279,7 @@ input{
 <td width=1><input type=submit onclick="ShowHideEvent( 'Debug' );" value="SPI Debug"></td>
 <tr>
 <td><div id=Debug class="collapsible">
-<table width=100% border=1>
+<table style="width:100%" border=1><tr>
 <td width=22%>
   <fieldset>
     <input type="radio" id="de" name="enableDebug" value="1" onclick="handleClick(this);">
@@ -288,20 +289,19 @@ input{
   </fieldset>
 </td>
 <td>
-	<label>SPI Out: </label> <input class="form-control" type="string"
+	<label>SPI Out: </label> <input class="form-control" type="text"
 		id="SPIOUT" name="outbytes" size="50" value="0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00"
 		onchange="sendValue(this); calcPos(this);">
 	<br>
-	<label>SPI In: </label> <input class="form-control" type="string"
+	<label>SPI In: </label> <input class="form-control" type="text"
 		id="SPIIN" name="inbytes" size="50">
 </td></tr></table></div></td></tr>
 
 <tr>
-<tr>
 <td width=1><input type=submit onclick="ShowHideEvent( 'manuell' );" value="manuell use"></td>
 <tr>
 <td><div id=manuell class="collapsible">
-<table width=100% border=1>
+<table style="width:100%" border=1><tr>
 <td width=9%>
 Card 1
 </td>
@@ -318,7 +318,7 @@ Card 1
 	<input type="checkbox" name="DDSLED" value="4" onclick="handleClick(this);">
 	<br>
 
-</td></tr>
+</td>
 <tr>
 <td width=9%>
 Card 2
@@ -351,7 +351,7 @@ Card 2
 	<label>Act Position 2:</label> <input class="form-control" type="number" id="incr1" size="10" value="0"  onchange="calcPos(this)">
 	<br>	
 	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi" size="10" value="0" onchange="calcPos(this)">
-	<label>Stundenachse:</label> <input class="form-control" type="time" id="Hour" size="10" value="0" onchange="calcPos(this)">
+	<label>Stundenachse:</label> <input class="form-control" type="text" id="Hour" size="10" value="00:00:00" onchange="calcPos(this)">
 	<br>
 	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this);">
 	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this);">		
@@ -371,14 +371,14 @@ Card 2
 <td width=1><input type=submit onclick="ShowHideEvent( 'PARAM' );" value="Parameters"></td>
 <tr>
 <td><div id=PARAM class="collapsible">
-<table width=100% border=1>
+<table style="width:100%" border=1><tr>
 <td width=22%>
 	<label>SSID: </label> 
 </td>
 <td>
 	<input class="form-control" type="text"
 		id="ssid" name="ssid" size="26" value="">
-</td></tr>
+</td>
 <tr>
 <td width=22%>
 	<label>Password: </label> 
