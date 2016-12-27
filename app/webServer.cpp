@@ -11,6 +11,7 @@ HttpServer server;
 int totalActiveSockets = 0;
 bool manualOpen=false;
 bool paramOpen=false;
+bool debugOpen=false;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
@@ -229,6 +230,9 @@ void workJsonObjekt(JsonObject &root) {
 	}
 	if (value==String("manuell")) {
 		manualOpen = root["value"];
+	}
+	if (value==String("Debug")) {
+		debugOpen = root["value"];
 	}
 
 }
