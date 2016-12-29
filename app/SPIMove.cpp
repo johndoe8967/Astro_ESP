@@ -55,7 +55,7 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 
 	increments[1] &= 0xfffff000;
 	increments[1] |= inctemp;
-
+	velocity[1] = calcVelocity(increments[1]);
 
 	inctemp =  (temp & 0xfff000) >> 12;
 	inctempold = increments[0] & 0x0fff;
@@ -72,6 +72,8 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 
 	increments[0] &= 0xfffff000;
 	increments[0] |= inctemp;
+	velocity[0] = calcVelocity(increments[0]);
+
 };
 
 void SPI_Move::calcSPIOutBuffer() {
@@ -79,6 +81,11 @@ void SPI_Move::calcSPIOutBuffer() {
 		calcControlLoop(0);
 		calcControlLoop(1);
 	}
+
+	if (!isMovingWhenPowered(REKTASZENSION)) {
+		motor_pwm[REKTASZENSION] = 0;
+	}
+
 	if (motor_pwm[0] <= 0x80) {
 		bytes[2] = 0x80 - motor_pwm[0];
 	} else {
@@ -106,4 +113,68 @@ void SPI_Move::calcControlLoop(unsigned char ch) {
 		if (control <-127) control = -127;
 	}
 	motor_pwm[ch] = control;
+}
+
+
+inline void SPI_Move::resetDelay() {
+	moveTimeoutCounter = 0;
+}
+bool SPI_Move::delayedTransition(unsigned char delay) {
+	if (moveTimeoutCounter++ == delay) {
+		resetDelay();
+		return true;
+	} else {
+		return false;
+	}
+}
+
+float SPI_Move::calcVelocity(long actPos) {
+#define OLDPOSLEN 10
+static long oldPos[OLDPOSLEN];
+static long oldestPosIndex;
+
+	float vel = (actPos - oldPos[oldestPosIndex]) / (OLDPOSLEN * SAMPLETIME);
+
+	oldPos[oldestPosIndex] = actPos;
+	oldestPosIndex++;
+	oldestPosIndex %= OLDPOSLEN;
+
+	return vel;
+}
+
+// check is movement is detected within defined time when pwm is greater than threshold
+// if detected pwm has to become 0 for the same defined time to reset the state
+bool SPI_Move::isMovingWhenPowered(unsigned char ch) {
+	switch (moveTimeoutState) {
+	case stopped:
+		if (abs(motor_pwm[ch]) >= motor_pwm_threshold) {
+			resetDelay();
+			moveTimeoutState = powered;
+		}
+		break;
+	case powered:
+		if (abs(motor_pwm[ch]) < motor_pwm_threshold) {
+			if (delayedTransition(25)) {
+				moveTimeoutState = stopped;
+			}
+		} else {
+			float minSpeedAtPWM = (float)motor_pwm[ch]/128.0 * MAXREKTASZENSIONSPEED / 2;
+			if (velocity[ch] < minSpeedAtPWM) {
+				if (delayedTransition(25)) {
+					moveTimeoutState = blocked;
+				}
+			} else {
+				resetDelay();
+			}
+		}
+		break;
+	case blocked:
+		if (abs(motor_pwm[ch]) < motor_pwm_threshold) {
+			if (delayedTransition(25)) {
+				moveTimeoutState = stopped;
+			}
+		}
+		break;
+	}
+	return (moveTimeoutState == blocked);
 }

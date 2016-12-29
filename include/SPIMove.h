@@ -13,6 +13,13 @@
 #define MOVESPIBufLen 3
 #define NUM_CHANNELS 2
 
+#define REKTASZENSION 0
+#define DECLINATION 1
+
+#define MAXREKTASZENSIONSPEED 235.3
+
+#define SAMPLETIME 0.020
+
 class SPI_Move: public SPIDevice {
 public:
 	SPI_Move();
@@ -24,6 +31,7 @@ public:
 
 
 	long getPos(unsigned char ch) { if (ch<NUM_CHANNELS) { return increments[ch]+offset[ch]; } else return 0;};
+	float getVel(unsigned char ch) { if (ch<NUM_CHANNELS) { return velocity[ch]; } else return 0;};
 	void setPWM(unsigned char ch, char pwm) { if (ch<NUM_CHANNELS) { motor_pwm[ch] = pwm;}};
 	void setLED(unsigned char ch) { if(ch<4) { LEDs |= 1<<ch;}};
 	void clrLED(unsigned char ch) { if(ch<4) { LEDs &= ~(1<<ch);}};
@@ -38,14 +46,26 @@ public:
 private:
 	void calcSPIOutBuffer();
 	void calcControlLoop(unsigned char ch);
+	float calcVelocity(long actPos);
+	bool isMovingWhenPowered(unsigned char ch);
+	void resetDelay();
+	bool delayedTransition(unsigned char delay);
+
 	bool posControlLoopEnabled=false;
-	bool targetPosReached[NUM_CHANNELS];
 	float P[NUM_CHANNELS]={1,2};
 
 	unsigned char *bytes;
+
 	long targetPos[NUM_CHANNELS];
 	long targetPosLimit[NUM_CHANNELS];
+	bool targetPosReached[NUM_CHANNELS];
+
+	enum MOVETIMEOUTSTATE {stopped=0, powered, blocked} moveTimeoutState;
+	unsigned char moveTimeoutCounter=25;
+	char motor_pwm_threshold;
+
 	long increments[NUM_CHANNELS];
+	float velocity[NUM_CHANNELS];
 	long offset[NUM_CHANNELS];
 
 	char motor_pwm[NUM_CHANNELS];
