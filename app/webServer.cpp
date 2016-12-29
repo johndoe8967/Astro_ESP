@@ -9,9 +9,9 @@
 #include <Debug.h>
 HttpServer server;
 int totalActiveSockets = 0;
-bool manualOpen=false;
-bool paramOpen=false;
-bool debugOpen=false;
+char manualOpen=0;
+char paramOpen=0;
+char debugOpen=0;
 
 WebSocketsList &clients=server.getActiveWebSockets();
 
@@ -52,13 +52,13 @@ void sendActData() {
 	ltoa(myMove->getPos(1),value_msg,10);
 	sendMessage("incr1",value_msg);
 
-	if (manualOpen) {
+	if (manualOpen > 0) {
 		ltoa(myAI->getAI(0),value_msg,10);
 		sendMessage("AI0",value_msg);
 		ltoa(myAI->getAI(1),value_msg,10);
 		sendMessage("AI1",value_msg);
 	}
-	if (paramOpen) {
+	if (paramOpen > 0) {
 		ltoa(SystemClock.now(),value_msg,10);
 		sendMessage("UTC",value_msg);
 	}
@@ -98,13 +98,20 @@ void wsConnected(WebSocket& socket)
 	WebSocketsList &clients = server.getActiveWebSockets();
 }
 
+void trackOpenDialog (bool open, char &counter) {
+	if (open) {
+		counter++;
+	} else {
+		if (debugOpen > 0) counter--;
+	}
+}
+
 /***************************************************************
  * Connection established
  * 	start services
  */
 void newConnectOk()
 {
-	String IP = WifiStation.getIP().toString();
 }
 
 
@@ -123,21 +130,25 @@ void workJsonObjekt(JsonObject &root) {
 			buffer = end + 1;
 		}
 	}
-	if (value==String("mode")) {
-		int temp = root["value"];
-		myMove->setPosition(0,myMove->getPos(0));
-		myMove->setPosition(1,myMove->getPos(1));
-		setMode((MODES)temp);
-	}
 
 	if (value==String("enableDebug")) {
 		enableBytesOut = root["value"];
 	}
-	if (value==String("magnet")) {
-		if (root["value"] == 1) {
-			myDDS->setMagnet();
-		} else {
-			myDDS->clrMagnet();
+	{
+		bool bVal = root["value"];
+		if (value==String("magnet")) {
+			if (bVal) 	myDDS->setMagnet();
+			else 		myDDS->clrMagnet();
+		}
+		if (value==String("PARAM")) {
+			trackOpenDialog(bVal, paramOpen);
+		}
+		if (value==String("manuell")) {
+			trackOpenDialog(bVal, manualOpen);
+		}
+
+		if (value==String("Debug")) {
+			trackOpenDialog(bVal, debugOpen);
 		}
 	}
 
@@ -149,9 +160,6 @@ void workJsonObjekt(JsonObject &root) {
 		if (value==String("Pgain1")) {
 			myMove->setPControl(1,val);
 		}
-	}
-	{
-		float val = root["value"];
 		if (value==String("PosLim0")) {
 			myMove->setPositionLimit(0,val);
 		}
@@ -160,13 +168,17 @@ void workJsonObjekt(JsonObject &root) {
 		}
 	}
 	{
-		char pwm = root["value"];
+		char cVal = root["value"];
 		if (value==String("motor1")) {
-			myMove->setPWM(0,pwm);
+			myMove->setPWM(0,cVal);
 		}
 		if (value==String("motor2")) {
-			myMove->setPWM(1,pwm);
+			myMove->setPWM(1,cVal);
 		}
+		if (value==String("filter")) {
+			myAI->setFilter((unsigned char)cVal);
+		}
+
 	}
 
 	{
@@ -181,45 +193,47 @@ void workJsonObjekt(JsonObject &root) {
 		}
 	}
 	{
-		int LED = root["value"];
+		int iValue = root["value"];
 		if (value==String("DDSLED")) {
-			if (LED < 0) {
-				LED *= -1;
-				myDDS->clrLED(LED-1);
+			if (iValue < 0) {
+				iValue *= -1;
+				myDDS->clrLED(iValue-1);
 			} else {
-				myDDS->setLED(LED-1);
+				myDDS->setLED(iValue-1);
 			}
 		}
 		if (value==String("MOTLED")) {
-			if (LED < 0) {
-				LED *= -1;
-				myMove->clrLED(LED-1);
+			if (iValue < 0) {
+				iValue *= -1;
+				myMove->clrLED(iValue-1);
 			} else {
-				myMove->setLED(LED-1);
+				myMove->setLED(iValue-1);
 			}
 		}
 		if (value==String("POSCTRL")) {
-			if (LED == 0) {
+			if (iValue == 0) {
 				myMove->posControlEnable(0);
 				usePoti = 0;
 			}
-			if (LED == 1) {
+			if (iValue == 1) {
 				myMove->posControlEnable(1);
 				usePoti = 0;
 			}
-			if (LED == 2) {
+			if (iValue == 2) {
 				myMove->posControlEnable(0);
 				usePoti = 1;
 			}
 		}
+		if (value==String("mode")) {
+			myMove->setPosition(0,myMove->getPos(0));
+			myMove->setPosition(1,myMove->getPos(1));
+			setMode((MODES)iValue);
+		}
+
 	}
 	if (value==String("frequency")) {
 		unsigned long freq = root["value"];
 		myDDS->setDDSValue(freq);
-	}
-	if (value==String("filter")) {
-		unsigned char val = root["value"];
-		myAI->setFilter(val);
 	}
 
 	if (value==String("WIFI")) {
@@ -232,17 +246,9 @@ void workJsonObjekt(JsonObject &root) {
 		time_t UTC = root["value"];
 		SystemClock.setTime(UTC,eTZ_UTC);
 	}
-	if (value==String("PARAM")) {
-		paramOpen = root["value"];
-	}
-	if (value==String("manuell")) {
-		manualOpen = root["value"];
-	}
-	if (value==String("Debug")) {
-		debugOpen = root["value"];
-	}
 
 }
+
 
 void wsMessageReceived(WebSocket& socket, const String& message)
 {
