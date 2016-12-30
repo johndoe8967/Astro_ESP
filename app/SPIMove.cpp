@@ -24,10 +24,10 @@ SPI_Move::SPI_Move() {
 	LEDs		 = 0x00;
 	offset[0]	 = 0x00;
 	offset[1]	 = 0x00;
-	rate[REKTASZENSION]	= MAXREKTASZENSIONSPEED*SAMPLETIME;
-	rate[DECLINATION]	= MAXDECLINATIONSPEED*SAMPLETIME;
-	minVel[REKTASZENSION] 	= MINREKTASZENSIONSPEED*SAMPLETIME;
-	minVel[DECLINATION] 	= MINDECLINATIONSPEED*SAMPLETIME;
+	rate[REKTASZENSION]	= MAXREKTASZENSIONSPEED;
+	rate[DECLINATION]	= MAXDECLINATIONSPEED;
+	minVel[REKTASZENSION] 	= MINREKTASZENSIONSPEED;
+	minVel[DECLINATION] 	= MINDECLINATIONSPEED;
 	accel[REKTASZENSION] = rate[REKTASZENSION];
 	accel[DECLINATION] = rate[DECLINATION];
  }
@@ -130,8 +130,8 @@ void SPI_Move::calcCyclicPos(unsigned char ch) {
 
 	float pbrake = rate[ch]*rate[ch]/(2*accel[ch]);
 	float ramp = min(1, error / pbrake);
-	error = min(error,rate[ch]*ramp);
-	error = max(error,minVel[ch]);
+	error = min(error,rate[ch]*ramp*SAMPLETIME);
+	error = max(error,minVel[ch]*SAMPLETIME);
 
 	if (dir == 1) { error *= -1;}
 	cyclicPos[ch] += error;
