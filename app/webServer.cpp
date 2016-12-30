@@ -99,22 +99,25 @@ void wsConnected(WebSocket& socket)
 	if (totalActiveSockets > 4) {
 		socket.close();
 	}
-/*	String message;
+	String message;
 
 	char value_msg[10];
-	dtostrf(myMove->getRate(0),9,4,value_msg);
+	dtostrf_p(myMove->getRate(0),6,2,value_msg,'0');
 	message = sendString ("Rate0", value_msg);
+	socket.sendString(message);
 
-	dtostrf(myMove->getRate(1),9,4,value_msg);
+	dtostrf_p(myMove->getRate(1),6,2,value_msg,'0');
 	message = sendString ("Rate1", value_msg);
+	socket.sendString(message);
 
-	dtostrf(myMove->getAccel(0),9,4,value_msg);
+	dtostrf_p(myMove->getAccel(0),6,2,value_msg,'0');
 	message = sendString ("Accel0", value_msg);
+	socket.sendString(message);
 
-	dtostrf(myMove->getAccel(1),9,4,value_msg);
+	dtostrf_p(myMove->getAccel(1),6,2,value_msg,'0');
 	message = sendString ("Accel1", value_msg);
+	socket.sendString(message);
 
-	socket.sendString(message);*/
 	WebSocketsList &clients = server.getActiveWebSockets();
 }
 
