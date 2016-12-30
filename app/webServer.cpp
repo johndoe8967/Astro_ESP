@@ -37,10 +37,14 @@ void sendSPIData(bool in, unsigned char bytes[11]) {
 		clients[i].sendString(message);
 }
 
-void sendMessage(const char *msg, const char *value) {
+String sendString (const char *msg, const char *value) {
 	String msg_string = String(msg);
 	String val_string = String(value);
-	String message = cjsonpart1 + msg_string +cjsonpart2  + val_string + "\"}";
+	return cjsonpart1 + msg_string +cjsonpart2  + val_string + "\"}";
+}
+
+void sendMessage(const char *msg, const char *value) {
+	String message = sendString(msg, value);
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
 }
@@ -95,6 +99,22 @@ void wsConnected(WebSocket& socket)
 	if (totalActiveSockets > 4) {
 		socket.close();
 	}
+/*	String message;
+
+	char value_msg[10];
+	dtostrf(myMove->getRate(0),9,4,value_msg);
+	message = sendString ("Rate0", value_msg);
+
+	dtostrf(myMove->getRate(1),9,4,value_msg);
+	message = sendString ("Rate1", value_msg);
+
+	dtostrf(myMove->getAccel(0),9,4,value_msg);
+	message = sendString ("Accel0", value_msg);
+
+	dtostrf(myMove->getAccel(1),9,4,value_msg);
+	message = sendString ("Accel1", value_msg);
+
+	socket.sendString(message);*/
 	WebSocketsList &clients = server.getActiveWebSockets();
 }
 
@@ -165,6 +185,18 @@ void workJsonObjekt(JsonObject &root) {
 		}
 		if (value==String("PosLim1")) {
 			myMove->setPositionLimit(1,val);
+		}
+		if (value==String("Rate0")) {
+			myMove->setRate(0,val);
+		}
+		if (value==String("Rate1")) {
+			myMove->setRate(1,val);
+		}
+		if (value==String("Accel0")) {
+			myMove->setAccel(0,val);
+		}
+		if (value==String("Accel1")) {
+			myMove->setAccel(1,val);
 		}
 	}
 	{

@@ -24,7 +24,13 @@ SPI_Move::SPI_Move() {
 	LEDs		 = 0x00;
 	offset[0]	 = 0x00;
 	offset[1]	 = 0x00;
-}
+	rate[REKTASZENSION]	= MAXREKTASZENSIONSPEED*SAMPLETIME;
+	rate[DECLINATION]	= MAXDECLINATIONSPEED*SAMPLETIME;
+	minVel[REKTASZENSION] 	= MINREKTASZENSIONSPEED*SAMPLETIME;
+	minVel[DECLINATION] 	= MINDECLINATIONSPEED*SAMPLETIME;
+	accel[REKTASZENSION] = rate[REKTASZENSION];
+	accel[DECLINATION] = rate[DECLINATION];
+ }
 
 SPI_Move::~SPI_Move() {
 	delete(bytes);
@@ -78,7 +84,9 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 
 void SPI_Move::calcSPIOutBuffer() {
 	if (posControlLoopEnabled) {
+		calcCyclicPos(0);
 		calcControlLoop(0);
+		calcCyclicPos(1);
 		calcControlLoop(1);
 	}
 
@@ -101,7 +109,7 @@ void SPI_Move::calcSPIOutBuffer() {
 }
 
 void SPI_Move::calcControlLoop(unsigned char ch) {
-	long error = targetPos[ch] - this->getPos(ch);
+	long error = cyclicPos[ch] - this->getPos(ch);
 	targetPosReached[ch] = (abs(error) < targetPosLimit[ch]);
 	float control =  (float)error * P[ch];
 	if (ch == 0) {
@@ -115,6 +123,19 @@ void SPI_Move::calcControlLoop(unsigned char ch) {
 	motor_pwm[ch] = control;
 }
 
+void SPI_Move::calcCyclicPos(unsigned char ch) {
+	long error = targetPos[ch] - cyclicPos[ch];
+	char dir = signbit(error);
+	error = abs(error);
+
+	float pbrake = rate[ch]*rate[ch]/(2*accel[ch]);
+	float ramp = min(1, error / pbrake);
+	error = min(error,rate[ch]*ramp);
+	error = max(error,minVel[ch]);
+
+	if (dir == 1) { error *= -1;}
+	cyclicPos[ch] += error;
+}
 
 inline void SPI_Move::resetDelay() {
 	moveTimeoutCounter = 0;
