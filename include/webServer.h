@@ -13,11 +13,14 @@
 #include "SPIAI.h"
 #include "application.h"
 
+#ifdef debugSPI
 extern unsigned char bytes[11];
+extern unsigned char enableBytesOut;
+#endif
+
 extern SPI_DDS  *myDDS;
 extern SPI_Move *myMove;
 extern SPI_AI   *myAI;
-extern unsigned char enableBytesOut;
 
 extern unsigned char usePoti;
 extern char debugOpen;

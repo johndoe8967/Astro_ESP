@@ -9,46 +9,56 @@
 #include <Debug.h>
 HttpServer server;
 int totalActiveSockets = 0;
+
 char manualOpen=0;
 char paramOpen=0;
 char debugOpen=0;
 
+// send given string message to all clients
 WebSocketsList &clients=server.getActiveWebSockets();
-
-char const cjsonpart1[25] = "{\"type\": \"JSON\",\"msg\": \"";
-char const cjsonpart2[14] = "\", \"value\": \"";
-
-void sendSPIData(bool in, unsigned char bytes[11]) {
-	String outData;
-	for (char i=0; i<11; i++) {
-		outData += String(bytes[i],16);
-		outData += ',';
-	}
-	String message = cjsonpart1;
-	if (in) {
-		message +=  "SPIIN";
-	}
-	else {
-		message +=  "SPIOUT";
-	}
-	message +=  cjsonpart2 + outData + "\"}";
-
+void sendMessageToClients(String &message) {
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
 }
 
+// parts to assemble json message
+char const cjsonpart1[25] = "{\"type\": \"JSON\",\"msg\": \"";
+char const cjsonpart2[14] = "\", \"value\": \"";
+
+// calculate JSON message for SPI IN or OUT data and send to all clients
+void sendSPIData(bool in, unsigned char bytes[11]) {
+	String message = cjsonpart1;
+
+	if (in) message +=  "SPIIN";
+	else message +=  "SPIOUT";
+
+	message +=  cjsonpart2;
+
+	for (char i=0; i<11; i++) {
+		message += String(bytes[i],16);
+		message += ',';
+	}
+
+	message += "\"}";
+	sendMessageToClients(message);
+}
+
+// calculate JSON message from single message and value
 String sendString (const char *msg, const char *value) {
 	String msg_string = String(msg);
 	String val_string = String(value);
 	return cjsonpart1 + msg_string +cjsonpart2  + val_string + "\"}";
 }
 
+// send message to all clients
 void sendMessage(const char *msg, const char *value) {
 	String message = sendString(msg, value);
-	for (int i = 0; i < clients.count(); i++)
-		clients[i].sendString(message);
+	sendMessageToClients(message);
 }
 
+// send actual data to all clients
+// - increment counter will be always sent
+// - other values will be sent if at least one client has opened the section
 void sendActData() {
 	char value_msg[10];
 	ltoa(myMove->getPos(0),value_msg,10);
@@ -68,6 +78,10 @@ void sendActData() {
 	}
 }
 
+
+//*********************************************
+//* web server for default page
+//*********************************************
 void onIndex(HttpRequest &request, HttpResponse &response)
 {
 	if (totalActiveSockets < 4) {
@@ -78,69 +92,64 @@ void onIndex(HttpRequest &request, HttpResponse &response)
 	}
 }
 
+//*********************************************
+//* web server for used files (java scripts)
+//*********************************************
 void onFile(HttpRequest &request, HttpResponse &response)
 {
 	String file = request.getPath();
-	if (file[0] == '/')
-		file = file.substring(1);
-
-	if (file[0] == '.')
-		response.forbidden();
-	else
-	{
+	if (file[0] == '/') file = file.substring(1);
+	if (file[0] == '.') response.forbidden();
+	else {
 		response.setCache(86400, true); // It's important to use cache for better performance.
 		response.sendFile(file);
 	}
 }
 
+
+//*********************************************
+//* websocket methods
+//*********************************************
 void wsConnected(WebSocket& socket)
 {
-	totalActiveSockets++;
-	if (totalActiveSockets > 4) {
-		socket.close();
+	totalActiveSockets++;								// count active clients
+	if (totalActiveSockets > 4) socket.close();			// allow up to 4 clients because of memory limitations
+	else {
+		// if valid client then send initial values
+		String message;
+		char value_msg[10];
+
+		dtostrf_p(myMove->getRate(0),6,2,value_msg,'0');
+		message = sendString ("Rate0", value_msg);
+		socket.sendString(message);
+
+		dtostrf_p(myMove->getRate(1),6,2,value_msg,'0');
+		message = sendString ("Rate1", value_msg);
+		socket.sendString(message);
+
+		dtostrf_p(myMove->getAccel(0),6,2,value_msg,'0');
+		message = sendString ("Accel0", value_msg);
+		socket.sendString(message);
+
+		dtostrf_p(myMove->getAccel(1),6,2,value_msg,'0');
+		message = sendString ("Accel1", value_msg);
+		socket.sendString(message);
 	}
-	String message;
 
-	char value_msg[10];
-	dtostrf_p(myMove->getRate(0),6,2,value_msg,'0');
-	message = sendString ("Rate0", value_msg);
-	socket.sendString(message);
-
-	dtostrf_p(myMove->getRate(1),6,2,value_msg,'0');
-	message = sendString ("Rate1", value_msg);
-	socket.sendString(message);
-
-	dtostrf_p(myMove->getAccel(0),6,2,value_msg,'0');
-	message = sendString ("Accel0", value_msg);
-	socket.sendString(message);
-
-	dtostrf_p(myMove->getAccel(1),6,2,value_msg,'0');
-	message = sendString ("Accel1", value_msg);
-	socket.sendString(message);
-
-	WebSocketsList &clients = server.getActiveWebSockets();
+	WebSocketsList &clients = server.getActiveWebSockets();	// update list of active clients
 }
 
+// count number of clients that opened a specific section
 void trackOpenDialog (bool open, char &counter) {
-	if (open) {
-		counter++;
-	} else {
-		if (debugOpen > 0) counter--;
-	}
-}
-
-/***************************************************************
- * Connection established
- * 	start services
- */
-void newConnectOk()
-{
+	if (open) counter++;
+	else if (counter > 0) counter--;
 }
 
 
 void workJsonObjekt(JsonObject &root) {
 	String value = root["msg"].asString();
 	Debug.println(value);
+#ifdef debugSPI
 	if (value==String("bytes")) {
 		const char* buffer;
 		char* end;
@@ -153,10 +162,10 @@ void workJsonObjekt(JsonObject &root) {
 			buffer = end + 1;
 		}
 	}
-
 	if (value==String("enableDebug")) {
 		enableBytesOut = root["value"];
 	}
+#endif
 	{
 		bool bVal = root["value"];
 		if (value==String("magnet")) {
@@ -275,7 +284,6 @@ void workJsonObjekt(JsonObject &root) {
 		String SSID = root["SSID"].asString();
 		String PWD = root["PWD"].asString();
 		WifiStation.config(SSID,PWD);
-		WifiStation.waitConnection(newConnectOk);
 	}
 	if (value==String("UTC")) {
 		time_t UTC = root["value"];
@@ -287,7 +295,6 @@ void workJsonObjekt(JsonObject &root) {
 
 void wsMessageReceived(WebSocket& socket, const String& message)
 {
-//	Debug.println(message);
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(message);
 

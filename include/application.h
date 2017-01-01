@@ -19,5 +19,6 @@
 enum MODES {move=0, track=1, sync=2, potiMag=3, slew=5, moving=10, tracking=11, syncing=12,potiMove=13,};
 void setMode(MODES newMode);
 
+//#define debugSPI
 
 #endif /* INCLUDE_APPLICATION_H_ */
