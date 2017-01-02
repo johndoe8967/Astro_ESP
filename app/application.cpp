@@ -294,6 +294,7 @@ void initSPI(unsigned int time) {
 	procTimer.initializeMs(time, loop).start();	// start cyclic calculation timer
 }
 
+#ifdef mDNS
 //mDNS using ESP8266 SDK functions
 void startmDNS() {
     struct mdns_info *info = (struct mdns_info *)os_zalloc(sizeof(struct mdns_info));
@@ -304,6 +305,7 @@ void startmDNS() {
     info->txt_data[0] = (char *) "path=/";
     espconn_mdns_init(info);
 }
+#endif
 
 void startAstro() {
 	startWebServer();
@@ -322,7 +324,9 @@ void startAstro() {
 void connectOk()
 {
 	ntp = new ntpClient();
+#ifdef mDNS
 	startmDNS();
+#endif
 }
 
 /***************************************************************
