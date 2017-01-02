@@ -113,7 +113,10 @@ void onFile(HttpRequest &request, HttpResponse &response)
 void wsConnected(WebSocket& socket)
 {
 	totalActiveSockets++;								// count active clients
-	if (totalActiveSockets > 4) socket.close();			// allow up to 4 clients because of memory limitations
+#ifdef trackConnections
+	Debug.println(String("ActiveSockets ")+String(totalActiveSockets));
+#endif
+	if (totalActiveSockets >= 4) socket.close();			// allow up to 4 clients because of memory limitations
 	else {
 		// if valid client then send initial values
 		String message;
@@ -143,6 +146,9 @@ void wsConnected(WebSocket& socket)
 void trackOpenDialog (bool open, char &counter) {
 	if (open) counter++;
 	else if (counter > 0) counter--;
+#ifdef trackConnections
+	Debug.println('0' + counter);
+#endif
 }
 
 
@@ -318,6 +324,9 @@ void wsBinaryReceived(WebSocket& socket, uint8_t* data, size_t size)
 void wsDisconnected(WebSocket& socket)
 {
 	totalActiveSockets--;
+	manualOpen = min(manualOpen, totalActiveSockets);
+	debugOpen = min(debugOpen, totalActiveSockets);
+	paramOpen = min(paramOpen, totalActiveSockets);
 	WebSocketsList &clients = server.getActiveWebSockets();
 }
 

@@ -367,8 +367,6 @@ void init()
 	WifiAccessPoint.config("astro","nomie",AUTH_OPEN,false);
 	WifiAccessPoint.enable(true);
 
-	commandHandler.registerSystemCommands();
-
 	// Run our method when station was connected to AP
 	startAstro();
 }
