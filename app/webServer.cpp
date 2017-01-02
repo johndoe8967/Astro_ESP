@@ -198,6 +198,12 @@ void workJsonObjekt(JsonObject &root) {
 		if (value==String("Pgain1")) {
 			myMove->setPControl(1,val);
 		}
+		if (value==String("Igain0")) {
+			myMove->setIControl(0,val);
+		}
+		if (value==String("Igain1")) {
+			myMove->setIControl(1,val);
+		}
 		if (value==String("PosLim0")) {
 			myMove->setPositionLimit(0,val);
 		}

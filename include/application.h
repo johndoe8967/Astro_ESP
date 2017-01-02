@@ -12,8 +12,8 @@
 #define SPI_MOSI 1	/* Master Out Slave In */
 #define SPI_CLK  0	/* Serial Clock */
 #define SPI_CS  2	/* Slave Select */
-#define SPI_DELAY 5	/* Clock Delay */
-#define SPI_BYTE_DELAY 5 /* Delay between Bytes */
+#define SPI_DELAY 10	/* Clock Delay */
+#define SPI_BYTE_DELAY 10 /* Delay between Bytes */
 
 
 enum MODES {move=0, track=1, sync=2, potiMag=3, slew=5, moving=10, tracking=11, syncing=12,potiMove=13,};

@@ -28,8 +28,8 @@ SPI_Move::SPI_Move() {
 	rate[DECLINATION]	= MAXDECLINATIONSPEED;
 	minVel[REKTASZENSION] 	= MINREKTASZENSIONSPEED;
 	minVel[DECLINATION] 	= MINDECLINATIONSPEED;
-	accel[REKTASZENSION] = rate[REKTASZENSION];
-	accel[DECLINATION] = rate[DECLINATION];
+	accel[REKTASZENSION] = ACCREKTASZENSION;
+	accel[DECLINATION] = ACCDEKLINATION;
  }
 
 SPI_Move::~SPI_Move() {
@@ -90,9 +90,9 @@ void SPI_Move::calcSPIOutBuffer() {
 		calcControlLoop(1);
 	}
 
-	if (!isMovingWhenPowered(REKTASZENSION)) {
-		motor_pwm[REKTASZENSION] = 0;
-	}
+//	if (!isMovingWhenPowered(REKTASZENSION)) {
+//		motor_pwm[REKTASZENSION] = 0;
+//	}
 
 	if (motor_pwm[0] <= 0x80) {
 		bytes[2] = 0x80 - motor_pwm[0];
@@ -108,10 +108,33 @@ void SPI_Move::calcSPIOutBuffer() {
 	bytes[0] = LEDs;
 }
 
-void SPI_Move::calcControlLoop(unsigned char ch) {
-	long error = cyclicPos[ch] - this->getPos(ch);
+void SPI_Move::checkPosReached(unsigned char ch) {
+	float error = targetPos[ch] - this->getPos(ch);
 	targetPosReached[ch] = (abs(error) < targetPosLimit[ch]);
-	float control =  (float)error * P[ch];
+}
+
+void SPI_Move::calcControlLoop(unsigned char ch) {
+	checkPosReached(ch);
+	float error = cyclicPos[ch] - this->getPos(ch);
+	float control =  error * P[ch];
+ 	if (control >127) control = 127;
+	if (control <-127) control = -127;
+
+	if (abs(error) > 2) {
+		controlI[ch] = controlI[ch] + error * I[ch];
+	} //else {
+//		controlI[ch] = 0;
+//	}
+
+	if (controlI[ch] + control > 127) {
+		controlI[ch] = 127 - control;
+	}
+
+	if (controlI[ch] + control < -127) {
+		controlI[ch] = -127 + control;
+	}
+	control += controlI[ch];
+
 	if (ch == 0) {
 	 	if (control >127) control = 127;
 		if (control <-127) control = -127;
@@ -124,15 +147,20 @@ void SPI_Move::calcControlLoop(unsigned char ch) {
 }
 
 void SPI_Move::calcCyclicPos(unsigned char ch) {
-	long error = targetPos[ch] - cyclicPos[ch];
+	float error = targetPos[ch] - cyclicPos[ch];
 	char dir = signbit(error);
 	error = abs(error);
 
 	float pbrake = rate[ch]*rate[ch]/(2*accel[ch]);
 	float ramp = min(1, error / pbrake);
-	error = min(error,rate[ch]*ramp*SAMPLETIME);
-	error = max(error,minVel[ch]*SAMPLETIME);
+	float maxVel = rate[ch]*ramp*SAMPLETIME;
 
+	if (maxVel < minVel[ch]) {
+		maxVel = minVel[ch];
+	}
+	if (error > maxVel) {
+		error = maxVel;
+	}
 	if (dir == 1) { error *= -1;}
 	cyclicPos[ch] += error;
 }

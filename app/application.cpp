@@ -47,8 +47,8 @@ EnableDebug enableDebug;	//* custom telnet commands: enable debug, show IP, (sta
 ntpClient *ntp;				//* ntp client used only for time display, not necessary for position calculation (client needs exact time)
 
 unsigned char usePoti;		//* indicator from webclient to use AI (equal to pressing both joystick button
-MODES mode = move;			//* main operation mode
-MODES modePrev = move;		//* backup to check if a mode change happened to send new mode to all clients
+MODES mode = sync;			//* main operation mode
+MODES modePrev = sync;		//* backup to check if a mode change happened to send new mode to all clients
 MODES oldMode;				//* backup of last operation mode to return to after manual mode
 
 
@@ -311,7 +311,7 @@ void startAstro() {
 	startWebServer();
 	telnet.listen(23);
 	enableDebug.initCommand();
-	initSPI(10);
+	initSPI(20);
 
 //	myFtp.listen(21);
 //	myFtp.addUser("me", "123"); // FTP account
@@ -340,7 +340,7 @@ void connectOk()
 void init()
 {
 	spiffs_mount(); // Mount file system, in order to work with files
-	System.setCpuFrequency(eCF_160MHz);
+	System.setCpuFrequency(eCF_80MHz);
 
 #ifdef SerialDebug
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default

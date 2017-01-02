@@ -17,9 +17,11 @@
 #define REKTASZENSION 1
 
 #define MAXREKTASZENSIONSPEED 235.3
-#define MAXDECLINATIONSPEED 200
-#define MINREKTASZENSIONSPEED 5
-#define MINDECLINATIONSPEED 5
+#define MAXDECLINATIONSPEED 1700
+#define MINREKTASZENSIONSPEED 1
+#define MINDECLINATIONSPEED 1
+#define ACCREKTASZENSION 700
+#define ACCDEKLINATION 5000
 
 #define SAMPLETIME 0.020
 
@@ -42,7 +44,8 @@ public:
 	void setPosition(unsigned char ch, long pos) { if (ch<NUM_CHANNELS) {targetPos[ch] = pos;cyclicPos[ch] = this->getPos(ch);}};
 	bool setPositionReached(unsigned char ch) { if (ch<NUM_CHANNELS) {return targetPosReached[ch];} else return false;};
 	void setPositionLimit(unsigned char ch, long limit) { if (ch<NUM_CHANNELS) {targetPosLimit[ch] = limit;}};
-	void setPControl(unsigned char ch, float setP) { if ((ch<NUM_CHANNELS)&&(setP>0)) {P[ch]=setP;}};
+	void setPControl(unsigned char ch, float setP) { if ((ch<NUM_CHANNELS)&&(setP>=0)) {P[ch]=setP;}};
+	void setIControl(unsigned char ch, float setI) { if ((ch<NUM_CHANNELS)&&(setI>=0)) {I[ch]=setI;}};
 	void setReference(unsigned char ch) {if(ch<NUM_CHANNELS) { offset[ch] = targetPos[ch]-increments[ch]; }};
 	void setRate(unsigned char ch, float setRate) {if(ch<NUM_CHANNELS) { if (setRate > 0) {rate[ch] = setRate;}}};
 	float getRate(unsigned char ch) {if(ch<NUM_CHANNELS) {return rate[ch];} else {return 0;}};
@@ -53,6 +56,7 @@ public:
 private:
 	void calcSPIOutBuffer();
 	void calcControlLoop(unsigned char ch);
+	void checkPosReached(unsigned char ch);
 	void calcCyclicPos(unsigned char ch);
 	float calcVelocity(long actPos);
 	bool isMovingWhenPowered(unsigned char ch);
@@ -60,7 +64,9 @@ private:
 	bool delayedTransition(unsigned char delay);
 
 	bool posControlLoopEnabled=false;
-	float P[NUM_CHANNELS]={1,2};
+	float P[NUM_CHANNELS]={1.6,3};
+	float I[NUM_CHANNELS]={0.03,0.02};
+	float controlI[NUM_CHANNELS]={0.0,0.0};
 
 	unsigned char *bytes;
 
@@ -75,7 +81,7 @@ private:
 
 	enum MOVETIMEOUTSTATE {stopped=0, powered, blocked} moveTimeoutState;
 	unsigned char moveTimeoutCounter=25;
-	char motor_pwm_threshold;
+	char motor_pwm_threshold=10;
 
 	long increments[NUM_CHANNELS];
 	float velocity[NUM_CHANNELS];

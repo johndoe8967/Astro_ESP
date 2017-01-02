@@ -264,9 +264,9 @@ input{
 
     <input type="radio" id="ref" name="mode" value="2" onclick="handleClick(this);">
     <label for="ref"> Sync</label><br> 
-    <input type="radio" id="star" name="mode" value="1" onclick="handleClick(this);">
+    <input type="radio" id="star" name="mode" value="1" checked="checked" onclick="handleClick(this);">
     <label for="star"> Tracking</label><br> 
-    <input type="radio" id="move" name="mode" value="0" checked="checked" onclick="handleClick(this);">
+    <input type="radio" id="move" name="mode" value="0" onclick="handleClick(this);">
     <label for="move"> Slew</label>
   </fieldset>
 </td>
@@ -355,8 +355,11 @@ Card 2
 	<label>Azimutachse :</label> <input class="form-control" type="number" id="Azi" size="10" value="0" onchange="calcPos(this)">
 	<label>Stundenachse:</label> <input class="form-control" type="text" id="Hour" size="10" value="00:00:00" onchange="calcPos(this)">
 	<br>
-	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.0" onchange="sendValue(this);">
-	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="1.0" onchange="sendValue(this);">		
+	<label>Reglergain 1:</label> <input class="form-control" type="number" id="Pgain0" name="Pgain0" size="10" value="1.6" onchange="sendValue(this);">
+	<label>Reglergain 2:</label> <input class="form-control" type="number" id="Pgain1" name="Pgain1" size="10" value="3.0" onchange="sendValue(this);">		
+	<br>
+	<label>ReglerIgain 1:</label> <input class="form-control" type="number" id="Igain0" name="Igain0" size="10" value="0.02" onchange="sendValue(this);">
+	<label>ReglerIgain 2:</label> <input class="form-control" type="number" id="Igain1" name="Igain1" size="10" value="0.03" onchange="sendValue(this);">		
 	<br>
 	<label>PosReachedLimit 1:</label> <input class="form-control" type="number" id="PosLim0" name="PosLim0" size="10" value="10" onchange="sendValue(this);">
 	<label>PosReachedLimit 2:</label> <input class="form-control" type="number" id="PosLim1" name="PosLim1" size="10" value="10" onchange="sendValue(this);">		
