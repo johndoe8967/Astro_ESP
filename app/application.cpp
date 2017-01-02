@@ -311,7 +311,7 @@ void startAstro() {
 	startWebServer();
 	telnet.listen(23);
 	enableDebug.initCommand();
-	initSPI(20);
+	initSPI(10);
 
 //	myFtp.listen(21);
 //	myFtp.addUser("me", "123"); // FTP account
