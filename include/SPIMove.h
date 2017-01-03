@@ -81,7 +81,7 @@ private:
 
 	enum MOVETIMEOUTSTATE {stopped=0, powered, blocked} moveTimeoutState;
 	unsigned char moveTimeoutCounter=25;
-	char motor_pwm_threshold=10;
+	const char motor_pwm_threshold=10;
 
 	long increments[NUM_CHANNELS];
 	float velocity[NUM_CHANNELS];

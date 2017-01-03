@@ -68,10 +68,11 @@ inline void resetDelay() {
 }
 // return true if delay elapsed defined time
 bool delayedTransition(unsigned char delay) {
-	if (delayModeChangeCount++ == delay) {
+	if (delayModeChangeCount == delay) {
 		resetDelay();
 		return true;
 	} else {
+		delayModeChangeCount++;
 		return false;
 	}
 }

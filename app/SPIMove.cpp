@@ -9,27 +9,29 @@
 #include <Debug.h>
 
 SPI_Move::SPI_Move() {
-	bytes = new(unsigned char[MOVESPIBufLen]);
-	Debug.println((long)bytes);
+	bytes = new (unsigned char[MOVESPIBufLen]);
+	Debug.println((long) bytes);
 	motor_pwm[0] = 0x00;
 	motor_pwm[1] = 0x00;
 	increments[0] = 0;
 	increments[1] = 0;
-	targetPos[0]  = 0;
-	targetPos[1]  = 0;
+	targetPos[0] = 0;
+	targetPos[1] = 0;
 	targetPosReached[0] = false;
 	targetPosReached[1] = false;
 	targetPosLimit[0] = 10;
 	targetPosLimit[1] = 10;
-	LEDs		 = 0x00;
-	offset[0]	 = 0x00;
-	offset[1]	 = 0x00;
-	rate[REKTASZENSION]	= MAXREKTASZENSIONSPEED;
-	rate[DECLINATION]	= MAXDECLINATIONSPEED;
-	minVel[REKTASZENSION] 	= MINREKTASZENSIONSPEED;
-	minVel[DECLINATION] 	= MINDECLINATIONSPEED;
+	LEDs = 0x00;
+	offset[0] = 0x00;
+	offset[1] = 0x00;
+	rate[REKTASZENSION] = MAXREKTASZENSIONSPEED;
+	rate[DECLINATION] = MAXDECLINATIONSPEED;
+	minVel[REKTASZENSION] = MINREKTASZENSIONSPEED;
+	minVel[DECLINATION] = MINDECLINATIONSPEED;
 	accel[REKTASZENSION] = ACCREKTASZENSION;
 	accel[DECLINATION] = ACCDEKLINATION;
+	moveTimeoutState = stopped;
+	moveTimeoutCounter = 0;
  }
 
 SPI_Move::~SPI_Move() {
@@ -90,9 +92,9 @@ void SPI_Move::calcSPIOutBuffer() {
 		calcControlLoop(1);
 	}
 
-//	if (!isMovingWhenPowered(REKTASZENSION)) {
-//		motor_pwm[REKTASZENSION] = 0;
-//	}
+	if (!isMovingWhenPowered(REKTASZENSION)) {
+		motor_pwm[REKTASZENSION] = 0;
+	}
 
 	if (motor_pwm[0] <= 0x80) {
 		bytes[2] = 0x80 - motor_pwm[0];
@@ -165,17 +167,7 @@ void SPI_Move::calcCyclicPos(unsigned char ch) {
 	cyclicPos[ch] += error;
 }
 
-inline void SPI_Move::resetDelay() {
-	moveTimeoutCounter = 0;
-}
-bool SPI_Move::delayedTransition(unsigned char delay) {
-	if (moveTimeoutCounter++ == delay) {
-		resetDelay();
-		return true;
-	} else {
-		return false;
-	}
-}
+
 
 float SPI_Move::calcVelocity(long actPos) {
 #define OLDPOSLEN 10
@@ -191,24 +183,38 @@ static long oldestPosIndex;
 	return vel;
 }
 
+void SPI_Move::resetDelay() {
+	moveTimeoutCounter = 0;
+}
+
+bool SPI_Move::delayedTransition(unsigned char delay) {
+	if (moveTimeoutCounter == delay) {
+		resetDelay();
+		return true;
+	} else {
+		moveTimeoutCounter++;
+		return false;
+	}
+}
 // check is movement is detected within defined time when pwm is greater than threshold
 // if detected pwm has to become 0 for the same defined time to reset the state
 bool SPI_Move::isMovingWhenPowered(unsigned char ch) {
+	unsigned char abs_pwm = abs(motor_pwm[ch]);
 	switch (moveTimeoutState) {
 	case stopped:
-		if (abs(motor_pwm[ch]) >= motor_pwm_threshold) {
+		if (abs_pwm >= motor_pwm_threshold) {
 			resetDelay();
 			moveTimeoutState = powered;
 		}
 		break;
 	case powered:
-		if (abs(motor_pwm[ch]) < motor_pwm_threshold) {
+		if (abs_pwm < motor_pwm_threshold) {
 			if (delayedTransition(25)) {
 				moveTimeoutState = stopped;
 			}
 		} else {
-			float minSpeedAtPWM = (float)motor_pwm[ch]/128.0 * MAXREKTASZENSIONSPEED / 2;
-			if (velocity[ch] < minSpeedAtPWM) {
+			float minSpeedAtPWM = (float)abs_pwm/256.0 * MAXREKTASZENSIONSPEED;
+			if (abs(velocity[ch]) < minSpeedAtPWM) {
 				if (delayedTransition(25)) {
 					moveTimeoutState = blocked;
 				}
@@ -218,7 +224,7 @@ bool SPI_Move::isMovingWhenPowered(unsigned char ch) {
 		}
 		break;
 	case blocked:
-		if (abs(motor_pwm[ch]) < motor_pwm_threshold) {
+		if (abs_pwm < motor_pwm_threshold) {
 			if (delayedTransition(25)) {
 				moveTimeoutState = stopped;
 			}
