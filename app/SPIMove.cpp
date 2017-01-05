@@ -11,19 +11,19 @@
 SPI_Move::SPI_Move() {
 	bytes = new (unsigned char[MOVESPIBufLen]);
 	Debug.println((long) bytes);
-	motor_pwm[0] = 0x00;
-	motor_pwm[1] = 0x00;
-	increments[0] = 0;
-	increments[1] = 0;
-	targetPos[0] = 0;
-	targetPos[1] = 0;
-	targetPosReached[0] = false;
-	targetPosReached[1] = false;
-	targetPosLimit[0] = 10;
-	targetPosLimit[1] = 10;
+	motor_pwm[DECLINATION] = 0x00;
+	motor_pwm[REKTASZENSION] = 0x00;
+	increments[DECLINATION] = 0;
+	increments[REKTASZENSION] = 0;
+	targetPos[DECLINATION] = 0;
+	targetPos[REKTASZENSION] = 0;
+	targetPosReached[DECLINATION] = false;
+	targetPosReached[REKTASZENSION] = false;
+	targetPosLimit[DECLINATION] = 10;
+	targetPosLimit[REKTASZENSION] = 10;
 	LEDs = 0x00;
-	offset[0] = 0x00;
-	offset[1] = 0x00;
+	offset[DECLINATION] = 0x00;
+	offset[REKTASZENSION] = 0x00;
 	rate[REKTASZENSION] = MAXREKTASZENSIONSPEED;
 	rate[DECLINATION] = MAXDECLINATIONSPEED;
 	minVel[REKTASZENSION] = MINREKTASZENSIONSPEED;
@@ -49,39 +49,37 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 		newData++;
 	}
 	inctemp =  temp & 0x000fff;
-	inctempold = increments[1] & 0x0fff;
+	inctempold = increments[REKTASZENSION] & 0x0fff;
 
 	if ((int)(inctemp - inctempold) < -2048) {
 		Debug.println("ueberlauf+");
-		increments[1] += 0x1000;
+		increments[REKTASZENSION] += 0x1000;
 	}
 
 	if ((int)(inctemp - inctempold) > 2048) {
 		Debug.println("ueberlauf-");
-		increments[1] -= 0x1000;
+		increments[REKTASZENSION] -= 0x1000;
 	}
 
-	increments[1] &= 0xfffff000;
-	increments[1] |= inctemp;
-	velocity[1] = calcVelocity(increments[1]);
+	increments[REKTASZENSION] &= 0xfffff000;
+	increments[REKTASZENSION] |= inctemp;
+	velocity[REKTASZENSION] = calcVelocity(increments[REKTASZENSION]);
 
 	inctemp =  (temp & 0xfff000) >> 12;
-	inctempold = increments[0] & 0x0fff;
+	inctempold = increments[DECLINATION] & 0x0fff;
 
 	if ((int)(inctemp - inctempold) < -2048) {
 		Debug.println("ueberlauf+");
-		increments[0] += 0x1000;
+		increments[DECLINATION] += 0x1000;
 	}
 
 	if ((int)(inctemp - inctempold) > 2048) {
 		Debug.println("ueberlauf-");
-		increments[0] -= 0x1000;
+		increments[DECLINATION] -= 0x1000;
 	}
 
-	increments[0] &= 0xfffff000;
-	increments[0] |= inctemp;
-	velocity[0] = calcVelocity(increments[0]);
-
+	increments[DECLINATION] &= 0xfffff000;
+	increments[DECLINATION] |= inctemp;
 };
 
 void SPI_Move::calcSPIOutBuffer() {
@@ -96,16 +94,16 @@ void SPI_Move::calcSPIOutBuffer() {
 		motor_pwm[REKTASZENSION] = 0;
 	}
 
-	if (motor_pwm[0] <= 0x80) {
-		bytes[2] = 0x80 - motor_pwm[0];
+	if (motor_pwm[DECLINATION] <= 0x80) {
+		bytes[2] = 0x80 - motor_pwm[DECLINATION];
 	} else {
-		bytes[2] = motor_pwm[0];
+		bytes[2] = motor_pwm[DECLINATION];
 	}
 
-	if (motor_pwm[1] <= 0x80) {
-		bytes[1] = 0x80 - motor_pwm[1];
+	if (motor_pwm[REKTASZENSION] <= 0x80) {
+		bytes[1] = 0x80 - motor_pwm[REKTASZENSION];
 	} else {
-		bytes[1] = motor_pwm[1];
+		bytes[1] = motor_pwm[REKTASZENSION];
 	}
 	bytes[0] = LEDs;
 }

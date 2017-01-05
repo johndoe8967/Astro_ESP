@@ -18,8 +18,8 @@
 
 #define MAXREKTASZENSIONSPEED 235.3
 #define MAXDECLINATIONSPEED 1700
-#define MINREKTASZENSIONSPEED 1
-#define MINDECLINATIONSPEED 1
+#define MINREKTASZENSIONSPEED 0.1
+#define MINDECLINATIONSPEED 0.1
 #define ACCREKTASZENSION 700
 #define ACCDEKLINATION 5000
 
@@ -77,7 +77,7 @@ private:
 	float rate[NUM_CHANNELS];
 	float accel[NUM_CHANNELS];
 	float minVel[NUM_CHANNELS];
-	long cyclicPos[NUM_CHANNELS];
+	float cyclicPos[NUM_CHANNELS];
 
 	enum MOVETIMEOUTSTATE {stopped=0, powered, blocked} moveTimeoutState;
 	unsigned char moveTimeoutCounter=25;
