@@ -193,6 +193,7 @@ void calcModeStatemachine () {
 	}
 }
 
+//#define measurelooptime
 // cyclic loop
 /***************************************************************
  * cyclic loop / main task
@@ -200,6 +201,10 @@ void calcModeStatemachine () {
  *
  */
 void loop() {
+#ifdef measurelooptime
+	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
+#endif
+
 	calcModeStatemachine();
 
 #ifdef debugSPI
@@ -240,9 +245,13 @@ void loop() {
 
 	// transmit SPI_Buffer if serial is not used for debugging
 #ifndef SerialDebug
+#ifndef measurelooptime
 	pSoftSPI->beginTransaction(pSoftSPI->SPIDefaultSettings);
+#endif
 	pSoftSPI->transfer(SPI_Buffer,SPIChainLen);
+#ifndef measurelooptime
 	pSoftSPI->endTransaction();
+#endif
 #endif
 
 	if (debugOpen && sendIndicator) {						// send SPI IN data if at least one client opened the debug section
@@ -264,6 +273,10 @@ void loop() {
 	if (sendIndicator) {									// send actual data to clients
 		sendActData();
 	}
+#ifdef measurelooptime
+	pSoftSPI->endTransaction();
+#endif
+
 }
 
 /***************************************************************
