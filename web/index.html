@@ -160,10 +160,11 @@
 		if (myClickable.checked) {
 			sign = 1;
 		}
+		var val = myClickable.value*sign;
 		var message = {
 				type : "JSON",
 				msg : myClickable.name,
-				value : myClickable.value*sign
+				value : val.toString(),
 			};
 			websocket.send(JSON.stringify(message));
 	}
