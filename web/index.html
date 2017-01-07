@@ -56,10 +56,7 @@
 		testWebSocket();
 	}
 
-	function onMessage(evt) {
-		var msg = JSON.parse(evt.data);
-		switch (msg.type) {
-		case "JSON":
+	function workMsg(msg) {
 			if (msg.msg == "UTC") {
 				var d = new Date(msg.value*1000);
 				msg.value = d.toUTCString();
@@ -90,6 +87,15 @@
 				}
 			}
 			calcPos(valuefield);
+	}
+	function onMessage(evt) {
+		var msg = JSON.parse(evt.data);
+		switch (msg.type) {
+		case "JSON":
+			workMsg(msg);
+			break;
+		case "ARRAY":
+			msg.msg.forEach(function(elem) {workMsg(elem);});
 			break;
 		}
 	}
