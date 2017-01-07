@@ -219,6 +219,22 @@ void loop() {
 		unsigned char *pBuffer = SPI_Buffer;				// working pointer to traverse through SPI Buffer
 		unsigned char *pSource;								// working pointer from the device output Data
 
+//#define twoTransfers
+#ifdef twoTransfers
+		pSoftSPI->transfer(SPI_Buffer,SPIChainLen);
+		pBuffer = SPI_Buffer;								// working pointer to traverse through SPI Buffer
+
+		// copy received data from SPI_Buffer to devices
+		myDDS->setSPIInBuffer(pBuffer);						// use SPI In data to calculate new DDS state
+		pBuffer += myDDS->getSPIBufferLen();				// set working pointer to next SPI device start address
+
+		myAI->setSPIInBuffer(pBuffer);						// use SPI In data to calculate new AI state
+		pBuffer += myAI->getSPIBufferLen();					// set working pointer to next SPI device start address
+
+		myMove->setSPIInBuffer(pBuffer);					// use SPI In data to calculate new drive state
+
+#endif
+		pBuffer = SPI_Buffer;
 		// copy out data from devices to SPI buffer
 	 	pSource = myDDS->getSPIBuffer();					// calculate DDS output data
 		memcpy(pBuffer, pSource, myDDS->getSPIBufferLen());	// copy DDS output data to SPI Output Buffer
