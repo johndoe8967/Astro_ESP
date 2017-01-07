@@ -40,7 +40,9 @@ unsigned char *pBuffer, *pSource;	//*
 
 // debug output instead of UART
 TelnetServer telnet;
+#ifdef customCommands
 EnableDebug enableDebug;	//* custom telnet commands: enable debug, show IP, (start SPI)
+#endif
 
 //FTPServer myFtp;
 
@@ -311,7 +313,9 @@ void startmDNS() {
 void startAstro() {
 	startWebServer();
 	telnet.listen(23);
+#ifdef customCommands
 	enableDebug.initCommand();
+#endif
 	initSPI(20);
 
 //	myFtp.listen(21);
