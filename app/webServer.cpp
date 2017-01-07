@@ -16,7 +16,15 @@ char debugOpen=0;
 
 // send given string message to all clients
 WebSocketsList &clients=server.getActiveWebSockets();
-void sendMessageToClients(String &message) {
+void sendMessageToClients(const String &message, WebSocket &socket) {
+	for (int i = 0; i < clients.count(); i++) {
+		if (!(clients[i]==socket)) {
+			clients[i].sendString(message);
+		}
+	}
+}
+
+void sendMessageToAllClients(const String &message) {
 	for (int i = 0; i < clients.count(); i++)
 		clients[i].sendString(message);
 }
@@ -40,7 +48,7 @@ void sendSPIData(bool in, unsigned char bytes[11]) {
 	}
 
 	message += "\"}";
-	sendMessageToClients(message);
+	sendMessageToAllClients(message);
 }
 
 // calculate JSON message from single message and value
@@ -53,7 +61,7 @@ String sendString (const char *msg, const char *value) {
 // send message to all clients
 void sendMessage(const char *msg, const char *value) {
 	String message = sendString(msg, value);
-	sendMessageToClients(message);
+	sendMessageToAllClients(message);
 }
 
 // send actual data to all clients
@@ -152,9 +160,9 @@ void trackOpenDialog (bool open, char &counter) {
 }
 
 
-void workJsonObjekt(JsonObject &root) {
+void workJsonObjekt(WebSocket& socket, JsonObject &root) {
 	String value = root["msg"].asString();
-	Debug.println(value);
+
 #ifdef debugSPI
 	if (value==String("bytes")) {
 		const char* buffer;
@@ -309,16 +317,16 @@ void wsMessageReceived(WebSocket& socket, const String& message)
 {
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.parseObject(message);
+	sendMessageToClients(message,socket);
+	Debug.println(message);
 
 	String value = root["type"].asString();
 	if (value==String("JSON")) {
-		Debug.print("msg: ");
-		workJsonObjekt(root);
+		workJsonObjekt(socket, root);
 	} else if (value==String("ARRAY")) {
 		JsonArray& msg = root["msg"];
 		for (int i = 0; i<msg.size(); i++) {
-			Debug.print("Array: ");
-			workJsonObjekt(msg[i]);
+			workJsonObjekt(socket, msg[i]);
 		}
 	}
 }
