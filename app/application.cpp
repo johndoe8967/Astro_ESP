@@ -393,7 +393,6 @@ void init()
 	// start debug, will be used through telnet
 	Debug.start();
 
-//	WifiStation.config(WIFI_SSID2, WIFI_PWD2);
 	WifiStation.enable(true);
 	WifiStation.setHostname("astro");
 	WifiStation.waitConnection(connectOk);
