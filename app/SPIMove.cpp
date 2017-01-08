@@ -81,13 +81,63 @@ void SPI_Move::setSPIInBuffer(unsigned char *newData) {
 	increments[DECLINATION] &= 0xfffff000;
 	increments[DECLINATION] |= inctemp;
 };
+#ifdef debug
+void SPI_Move::debugError(float error) {
+	static unsigned char simcounter=0;
+	simcounter++;
+	simcounter %=50;
+	if (simcounter==0) {
+		char value_msg[10];
+		Debug.print("Err: ");
+		dtostrf_p(error,6,2,value_msg,'0');
+		Debug.print(value_msg);
+	}
+}
+void SPI_Move::debug(unsigned char ch) {
+	static unsigned char simcounter[2]={0,0};
+	simcounter[ch]++;
+	simcounter[ch] %=50;
+	if (simcounter[ch]==0) {
+		if (ch == DECLINATION) {
+			Debug.print("Dec:");
+		} else {
+			Debug.print("Rek:");
+		}
+		char value_msg[10];
+		Debug.print("Tar: ");
+		Debug.print(targetPos[ch]);
+
+		Debug.print("pos: ");
+		Debug.print(getPos(ch));
+
+		Debug.print(" cyc: ");
+		dtostrf_p(cyclicPos[ch],6,2,value_msg,'0');
+		Debug.print(value_msg);
+
+		Debug.print(" offs:");
+		Debug.println(offset[ch]);
+	}
+}
+#endif
 
 void SPI_Move::calcSPIOutBuffer() {
+#ifdef debug
+	debug(0);
+	debug(1);
+#endif
+
 	if (posControlLoopEnabled) {
 		calcCyclicPos(0);
 		calcControlLoop(0);
 		calcCyclicPos(1);
 		calcControlLoop(1);
+	} else if (simulate) {
+		static unsigned char simcounter=0;
+		simcounter++;
+		simcounter %=50;
+		if (simcounter==0) {
+			offset[REKTASZENSION]++;
+		}
 	}
 
 	if (!isMovingWhenPowered(REKTASZENSION)) {
@@ -113,9 +163,45 @@ void SPI_Move::checkPosReached(unsigned char ch) {
 	targetPosReached[ch] = (abs(error) < targetPosLimit[ch]);
 }
 
+// if error is more than half 360° then move other direction
+//             error out
+//           /    |   /
+//          /     |  /
+//         /      | /
+//        /       |/   +modulo
+//-------/--------/--------/------- error in
+//   -modulo     /|       /
+//              / |      /
+//             /  |     /
+//            /   |    /
+//                |
+float SPI_Move::calcModuloError(unsigned char ch, float error) {
+	float lowerlimit = modulo[ch];
+	lowerlimit *= 1.5;
+	if (error < -lowerlimit) error = -lowerlimit;
+	return fmod((error + lowerlimit), modulo[ch]) - modulo[ch] / 2;
+}
+
+//             cyclicPos out
+//              / |       /         /
+//            /   |     /         /
+//          /     |   /         /
+//        /       | /         /
+//------/---------/---------/------- cyclicPos in
+//                |
+//                |
+float SPI_Move::calcModuloPos(unsigned char ch, float pos) {
+	float lowerlimit = (float) modulo[ch];
+	if (pos < -lowerlimit) pos = -lowerlimit;
+	return fmod(pos + lowerlimit,modulo[ch]);
+}
+
 void SPI_Move::calcControlLoop(unsigned char ch) {
 	checkPosReached(ch);
 	float error = cyclicPos[ch] - this->getPos(ch);
+	error = calcModuloError(ch, error);
+
+
 	float control =  error * P[ch];
  	if (control >127) control = 127;
 	if (control <-127) control = -127;
@@ -144,10 +230,18 @@ void SPI_Move::calcControlLoop(unsigned char ch) {
 		if (control <-127) control = -127;
 	}
 	motor_pwm[ch] = control;
+
+	if (simulate) {
+		offset[ch] += error;
+		offset[ch] = calcModuloPos(ch,offset[ch]);
+	}
 }
 
 void SPI_Move::calcCyclicPos(unsigned char ch) {
+
 	float error = targetPos[ch] - cyclicPos[ch];
+	error = calcModuloError(ch, error);
+
 	char dir = signbit(error);
 	error = abs(error);
 
@@ -163,6 +257,7 @@ void SPI_Move::calcCyclicPos(unsigned char ch) {
 	}
 	if (dir == 1) { error *= -1;}
 	cyclicPos[ch] += error;
+	cyclicPos[ch] = calcModuloPos(ch, cyclicPos[ch]);
 }
 
 

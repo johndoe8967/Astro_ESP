@@ -182,10 +182,6 @@ void workJsonObjekt(WebSocket& socket, JsonObject &root) {
 #endif
 	{
 		bool bVal = root["value"];
-		if (value==String("magnet")) {
-			if (bVal) 	myDDS->setMagnet();
-			else 		myDDS->clrMagnet();
-		}
 		if (value==String("PARAM")) {
 			trackOpenDialog(bVal, paramOpen);
 		}
@@ -258,6 +254,17 @@ void workJsonObjekt(WebSocket& socket, JsonObject &root) {
 	}
 	{
 		int iValue = root["value"];
+		if (value==String("magnet")) {
+			if (iValue > 0)
+				myDDS->setMagnet();
+			else
+				myDDS->clrMagnet();
+		}
+		if (value==String("Simulate")) {
+			if (iValue < 0) iValue = 0;
+			myMove->setSimulate(iValue);
+		}
+
 		if (value==String("DDSLED")) {
 			if (iValue < 0) {
 				iValue *= -1;

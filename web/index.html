@@ -21,7 +21,7 @@
 
 	function testWebSocket() {
 		var wsUri = "ws://" + location.host + "/";
-//		var wsUri = "ws://192.168.0.12/";
+//		var wsUri = "ws://192.168.4.1/";
 		websocket = new WebSocket(wsUri);
 		websocket.onopen = function(evt) {
 			onOpen(evt)
@@ -308,6 +308,8 @@ Card 1
 	<input type="checkbox" name="DDSLED" value="2" onclick="handleClick(this);">
 	<input type="checkbox" name="DDSLED" value="3" onclick="handleClick(this);">
 	<input type="checkbox" name="DDSLED" value="4" onclick="handleClick(this);">
+	<label>Simulation</label> 
+		<input type="checkbox" name="Simulate" value="1" onclick="handleClick(this);">
 	<br>
 
 </td>
