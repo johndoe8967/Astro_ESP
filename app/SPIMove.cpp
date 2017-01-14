@@ -163,6 +163,7 @@ void SPI_Move::checkPosReached(unsigned char ch) {
 	targetPosReached[ch] = (abs(error) < targetPosLimit[ch]);
 }
 
+// REKASZENSION
 // if error is more than half 360° then move other direction
 //             error out
 //           /    |   /
@@ -174,14 +175,32 @@ void SPI_Move::checkPosReached(unsigned char ch) {
 //              / |      /
 //             /  |     /
 //            /   |    /
-//                |
+//
+// Deklination
+//             error out
+//                |       /
+//                |     /
+//                |   /
+//                | /
+//----------------/----------------- error in
+//              / |
+//            /   |
+//          /     |
+//        /       |
+
 float SPI_Move::calcModuloError(unsigned char ch, float error) {
-	float lowerlimit = modulo[ch];
-	lowerlimit *= 1.5;
-	if (error < -lowerlimit) error = -lowerlimit;
-	return fmod((error + lowerlimit), modulo[ch]) - modulo[ch] / 2;
+	if (ch == REKTASZENSION) {
+		float lowerlimit = modulo[ch];
+		lowerlimit *= 1.5;
+		if (error < -lowerlimit) error = -lowerlimit;
+		return fmod((error + lowerlimit), modulo[ch]) - modulo[ch] / 2;
+	}
+	if (ch == DECLINATION) {
+		return error;
+	}
 }
 
+// Rektaszension
 //             cyclicPos out
 //              / |       /         /
 //            /   |     /         /
@@ -190,10 +209,30 @@ float SPI_Move::calcModuloError(unsigned char ch, float error) {
 //------/---------/---------/------- cyclicPos in
 //                |
 //                |
+
+// Deklination
+//             cyclicPos out
+//                |       /
+//                |     /
+//                |   /
+//                | /
+//----------------/----------------- cyclicPos in
+//              / |
+//            /   |
+//          /     |
+//        /       |
+
 float SPI_Move::calcModuloPos(unsigned char ch, float pos) {
-	float lowerlimit = (float) modulo[ch];
-	if (pos < -lowerlimit) pos = -lowerlimit;
-	return fmod(pos + lowerlimit,modulo[ch]);
+	if (ch == REKTASZENSION) {
+		float lowerlimit = (float) modulo[ch];
+		if (pos < -lowerlimit) pos = -lowerlimit;
+		return fmod(pos + lowerlimit,modulo[ch]);
+	}
+	if (ch == DECLINATION) {
+		if (pos < -modulo[ch]) return -modulo[ch];
+		if (pos > modulo[ch]) return modulo[ch];
+		return pos;
+	}
 }
 
 void SPI_Move::calcControlLoop(unsigned char ch) {
